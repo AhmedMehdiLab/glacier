@@ -23,6 +23,5 @@ Imports:
     tidyr,
     xml2
 Suggests: 
-    limma,
     Seurat,
     testthat
