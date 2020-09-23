@@ -5,28 +5,28 @@
 \title{Calculate overlap statistics for select genes}
 \usage{
 workflow(
-  input.raw,
-  anno.pre,
-  anno.opts = "file",
-  data.pre,
-  info.from = "database",
+  input_raw,
+  anno_pre,
+  anno_opts = "file",
+  data_pre,
+  info_from = "database",
   categories = NULL,
   organisms = NULL,
   universe
 )
 }
 \arguments{
-\item{input.raw}{string input with genes and values}
+\item{input_raw}{string input with genes and values}
 
-\item{anno.pre}{output of \code{\link{import.annotations}}}
+\item{anno_pre}{output of \code{\link{import_annotations}}}
 
-\item{anno.opts}{'name' for gene set names, 'syms' for gene set symbols,
+\item{anno_opts}{'name' for gene set names, 'syms' for gene set symbols,
 'info' for gene set information, 'auto' for automatically generated
 annotations, 'file' for manual annotations}
 
-\item{data.pre}{output of \code{\link{import.database}}}
+\item{data_pre}{output of \code{\link{import_database}}}
 
-\item{info.from}{"annotation" or "database"}
+\item{info_from}{"annotation" or "database"}
 
 \item{categories}{optionally filter categories}
 
@@ -42,13 +42,13 @@ Calculate overlap statistics for select genes
 }
 \examples{
 \dontrun{
-anno.raw <- read.common('path/to/anno.csv', ',', T)
-anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+anno_raw <- read_common('path/to/anno.csv', ',', T)
+anno_pre <- import.annotations(anno_raw, c(2, 9), 10)
 
-data.raw <- read.common('path/to/data.csv', ',', T)
-data.pre <- import.database(data.raw, c(2, 9), 10)
+data_raw <- read_common('path/to/data.csv', ',', T)
+data_pre <- import.database(data_raw, c(2, 9), 10)
 
-workflow('GENE1 0.1 GENE2 0.2 GENE3 0.3', anno.pre, data.pre = data.pre,
+workflow('GENE1 0.1 GENE2 0.2 GENE3 0.3', anno_pre, data_pre = data_pre,
          universe = 10000)
 }
 }

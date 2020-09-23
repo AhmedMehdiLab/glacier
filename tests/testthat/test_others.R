@@ -2,52 +2,52 @@ context("Additional tests")
 library(magrittr)
 library(tibble)
 
-ANNO <- file.path("files", "anno_two.csv")
-DATA <- file.path("files", "data_two.csv")
+anno_file <- file.path("files", "anno_two.csv")
+data_file <- file.path("files", "data_two.csv")
 
-test_that("function 'display.overlap' does not crash", {
-  anno.pre <-
-    import.annotations(read.common(ANNO, ",", F), c(2, 3), 4)
-  data.pre <- import.database(read.common(DATA, ",", F), c(2, 3), 4)
-  input <- process.input('GENE1 0.1 GENE2 0.2 GENE3 0.3')$input
+test_that("function 'display_overlap' does not crash", {
+  anno_pre <-
+    import_annotations(read_common(anno_file, ",", F), c(2, 3), 4)
+  data_pre <- import_database(read_common(data_file, ",", F), c(2, 3), 4)
+  input <- process_input("GENE1 0.1 GENE2 0.2 GENE3 0.3")$input
   stats <-
-    workflow('GENE1 0.1 GENE2 0.2 GENE3 0.3',
-             anno.pre,
-             data.pre = data.pre,
+    workflow("GENE1 0.1 GENE2 0.2 GENE3 0.3",
+             anno_pre,
+             data_pre = data_pre,
              universe = 10000)
-  
-  expect_error(display.overlap(input, stats$stats, stats$matches, "Gene Value"),
+
+  expect_error(display_overlap(input, stats$stats, stats$matches, "Gene Value"),
                NA)
-  expect_error(display.overlap(input, stats$stats, stats$matches, "Adjusted P-value"),
-               NA)
+  expect_error(display_overlap(input, stats$stats, stats$matches,
+                               "Adjusted P-value"), NA)
 })
 
-test_that("function 'display.stats' does not crash", {
-  anno.pre <-
-    import.annotations(read.common(ANNO, ",", F), c(2, 3), 4)
-  data.pre <- import.database(read.common(DATA, ",", F), c(2, 3), 4)
+test_that("function 'display_stats' does not crash", {
+  anno_pre <-
+    import_annotations(read_common(anno_file, ",", F), c(2, 3), 4)
+  data_pre <- import_database(read_common(data_file, ",", F), c(2, 3), 4)
   stats <-
-    workflow('GENE1 0.1 GENE2 0.2 GENE3 0.3',
-             anno.pre,
-             data.pre = data.pre,
+    workflow("GENE1 0.1 GENE2 0.2 GENE3 0.3",
+             anno_pre,
+             data_pre = data_pre,
              universe = 10000)
-  
-  expect_error(display.stats(stats$stats, "Fold Enrichment", "Adjusted P-value"),
-               NA)
-  expect_error(display.stats(stats$stats, "Fold Enrichment", "Adjusted P-value", sort = T),
-               NA)
+
+  expect_error(display_stats(stats$stats, "Fold Enrichment",
+                             "Adjusted P-value"), NA)
+  expect_error(display_stats(stats$stats, "Fold Enrichment", "Adjusted P-value",
+                             sort = T), NA)
 })
 
 test_that("function 'workflow' does not crash", {
-  anno.pre <-
-    import.annotations(read.common(ANNO, ",", F), c(2, 3), 4)
-  data.pre <- import.database(read.common(DATA, ",", F), c(2, 3), 4)
-  
+  anno_pre <-
+    import_annotations(read_common(anno_file, ",", F), c(2, 3), 4)
+  data_pre <- import_database(read_common(data_file, ",", F), c(2, 3), 4)
+
   expect_error(
     workflow(
-      'GENE1 0.1 GENE2 0.2 GENE3 0.3',
-      anno.pre,
-      data.pre = data.pre,
+      "GENE1 0.1 GENE2 0.2 GENE3 0.3",
+      anno_pre,
+      data_pre = data_pre,
       universe = 10000
     ),
     NA

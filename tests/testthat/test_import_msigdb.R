@@ -3,13 +3,13 @@ library(magrittr)
 library(purrr)
 library(tibble)
 
-ZERO <- file.path("files", "msig_zero.xml")
-ONE <- file.path("files", "msig_one.xml")
-TWO <- file.path("files", "msig_two.xml")
+msig_0 <- file.path("files", "msig_zero.xml")
+msig_1 <- file.path("files", "msig_one.xml")
+msig_2 <- file.path("files", "msig_two.xml")
 
 test_that("blank MSigDB XML files can be imported", {
   expect_equal(
-    import.msigdb_xml(ZERO),
+    import_msigdb_xml(msig_0),
     list(
       gs_genes = list() %>% set_names(character()),
       gs_info = tibble(
@@ -22,7 +22,7 @@ test_that("blank MSigDB XML files can be imported", {
 
 test_that("simple MSigDB XML files can be imported", {
   expect_equal(
-    import.msigdb_xml(ONE),
+    import_msigdb_xml(msig_1),
     list(
       gs_genes = list(SN1 = "GENE1"),
       gs_info = tibble(
@@ -35,12 +35,14 @@ test_that("simple MSigDB XML files can be imported", {
 
 test_that("complex MSigDB XML files can be imported", {
   expect_equal(
-    import.msigdb_xml(TWO),
+    import_msigdb_xml(msig_2),
     list(
       gs_genes = list(SN1 = "GENE1", SN2 = c("GENE1", "GENE2")),
       gs_info = tibble(
-        name = c("SN1", "SN2"), info = c("example 1", "example 2"),
-        desc = factor(c("example one", "example two")), category = as.factor("1"),
+        name = c("SN1", "SN2"),
+        info = c("example 1", "example 2"),
+        desc = factor(c("example one", "example two")),
+        category = as.factor("1"),
         organism = as.factor("Homo sapiens")
       )
     )
