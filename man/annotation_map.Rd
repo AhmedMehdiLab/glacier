@@ -20,16 +20,16 @@ vector of associated gene sets and vector of associated genes
 Map annotation to gene sets and genes
 }
 \examples{
-\dontrun{
-anno_raw <- read_common('path/to/anno.csv', ',', T)
+anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+anno_raw <- read_common(anno_file, ",", FALSE)
 anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-info_pre <- anno_pre[c('name', 'info')]
-anno <- process_annotations(anno_pre, info_pre, c('file', 'auto'))
 
-data_raw <- read_common('path/to/data.csv', ',', T)
-data_pre <- import_database(data_raw, c(2, 9), 10)
+data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+data_raw <- read_common(data_file, ",", FALSE)
+data_pre <- import_database(data_raw, c(2, 4), 0)
+
+info <- anno_pre[c("name", "info")]
+anno <- process_annotations(anno_pre, info, "file")
 data <- process_database(data_pre, 'Not assigned', 'Not assigned')
-
-annotation_map('annotation', anno$gs_annos, data$gs_genes)
-}
+annotation_map("Carcinogen", anno$gs_annos, data$gs_genes)
 }

@@ -12,20 +12,21 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' anno_raw <- read.common('path/to/anno.csv', ',', T)
-#' anno_pre <- import.annotations(anno_raw, c(2, 9), 10)
-#' info <- anno_pre[c('name', 'info')]
-#' anno <- process_annotations(anno_pre, info, c('file', 'auto'))
+#' anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(anno_file, ",", FALSE)
+#' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
 #'
-#' data_raw <- read.common('path/to/data.csv', ',', T)
-#' data_pre <- import.database(data_raw, c(2, 9), 10)
+#' data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(data_file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
+#'
+#' info <- anno_pre[c("name", "info")]
+#' anno <- process_annotations(anno_pre, info, "file")
 #' data <- process_database(data_pre, 'Not assigned', 'Not assigned')
 #'
-#' input <- process_input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
-#' stats <- calculate(input, anno$annos, anno$gs_annos, data$gs_genes, 10000)
-#' display_overlap(input$gene, stats$stats, stats$matches, 'Gene Value')
-#' }
+#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')$input
+#' calc <- calculate(input, anno$annos, anno$gs_annos, data$gs_genes, 100)
+#' over <- display_overlap(input, calc$stats, calc$matches, "Gene Value")
 display_overlap <- function(input, stats, matches, value,
                             value_trans = "identity") {
   . <- NULL
@@ -87,20 +88,21 @@ display_overlap <- function(input, stats, matches, value,
 #' @importFrom rlang .data
 #'
 #' @examples
-#' \dontrun{
-#' anno_raw <- read.common('path/to/anno.csv', ',', T)
-#' anno_pre <- import.annotations(anno_raw, c(2, 9), 10)
-#' info <- anno_pre[c('name', 'info')]
-#' anno <- process_annotations(anno_pre, info, c('file', 'auto'))
+#' anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(anno_file, ",", FALSE)
+#' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
 #'
-#' data_raw <- read.common('path/to/data.csv', ',', T)
-#' data_pre <- import.database(data_raw, c(2, 9), 10)
+#' data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(data_file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
+#'
+#' info <- anno_pre[c("name", "info")]
+#' anno <- process_annotations(anno_pre, info, "file")
 #' data <- process_database(data_pre, 'Not assigned', 'Not assigned')
 #'
-#' input <- process_input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
-#' stats <- calculate(input, anno$annos, anno$gs_annos, data$gs_genes, 10000)
-#' display_stats(stats$stats, 'Fold Enrichment', 'Adjusted P-value')
-#' }
+#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')$input
+#' calc <- calculate(input, anno$annos, anno$gs_annos, data$gs_genes, 100)
+#' stat <- display_stats(calc$stats, 'Fold Enrichment', 'Adjusted P-value')
 display_stats <- function(stats, value, color, value_trans = "identity",
                           color_trans = "identity", sort = F) {
   # prepare axes

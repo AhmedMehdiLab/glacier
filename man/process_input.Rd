@@ -16,6 +16,6 @@ gene names, values and bitmap index of missing values
 Process gene string input
 }
 \examples{
-process_input('GENE1 GENE2 GENE3')
-process_input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+input <- process_input('CYP1A1 CYP1B1 NQO1 SODD')
+input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 }

@@ -20,8 +20,7 @@ gene set annotations and information
 Import annotation file
 }
 \examples{
-\dontrun{
-anno_raw <- read_common('path/to/anno.csv', ',', T)
-import_annotations(anno_raw, c(2, 9), 10)
-}
+file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+anno_raw <- read_common(file, ",", FALSE)
+anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
 }

@@ -20,8 +20,7 @@ gene set contents and information
 Import database file
 }
 \examples{
-\dontrun{
-data_raw <- read.common('path/to/data.csv', ',', T)
-import_database(data_raw, c(2, 9), 10)
-}
+file <- system.file("extdata", "ex_data.csv", package = "glacier")
+data_raw <- read_common(file, ",", FALSE)
+data_pre <- import_database(data_raw, c(2, 4), 0)
 }

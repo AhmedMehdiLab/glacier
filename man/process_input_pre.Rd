@@ -18,7 +18,7 @@ be used.
 }
 \examples{
 \dontrun{
-process_input_pre('GENE1 GENE2 GENE3')
-process_input_pre('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+input_pre <- process_input_pre('CYP1A1 CYP1B1 NQO1 SODD')
+input_pre <- process_input_pre('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 }
 }

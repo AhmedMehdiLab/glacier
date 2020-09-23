@@ -14,20 +14,21 @@ Imports:
     dplyr,
     forcats,
     ggplot2,
+    htmltools,
     magrittr,
     purrr,
     readr,
     rlang,
-    stringr,
-    tibble,
-    tidyr,
-    xml2
-Suggests: 
-    htmltools,
-    limma,
-    Seurat,
     shiny,
     shinyjs,
     shinythemes,
     shinyWidgets,
+    stringr,
+    tibble,
+    tidyr,
+    tools,
+    xml2
+Suggests: 
+    limma,
+    Seurat,
     testthat

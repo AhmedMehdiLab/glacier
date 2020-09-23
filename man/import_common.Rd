@@ -21,7 +21,8 @@ Pre-process common file type tibble
 }
 \examples{
 \dontrun{
-common_raw <- read_common('path/to/common.csv', ',', T)
-import_common(common_raw, c(2, 9), 10)
+file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+common_raw <- read_common(file, ",", FALSE)
+common_pre <- import_common(common_raw, c(2, 9), 10)
 }
 }

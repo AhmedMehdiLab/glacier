@@ -16,7 +16,6 @@ gene set contents and information
 Import MSigDB XML file
 }
 \examples{
-\dontrun{
-import_msigdb_xml('path/to/msigdb.xml')
-}
+file <- system.file("extdata", "ex_msig.xml", package = "glacier")
+data_pre <- import_msigdb_xml(file)
 }

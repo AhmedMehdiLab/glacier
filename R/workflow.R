@@ -14,16 +14,17 @@
 #' @return overlap statistics
 #' @export
 #'
-#' @examples \dontrun{
-#' anno_raw <- read_common('path/to/anno.csv', ',', T)
-#' anno_pre <- import.annotations(anno_raw, c(2, 9), 10)
+#' @examples
+#' anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(anno_file, ",", FALSE)
+#' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
 #'
-#' data_raw <- read_common('path/to/data.csv', ',', T)
-#' data_pre <- import.database(data_raw, c(2, 9), 10)
+#' data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(data_file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
 #'
-#' workflow('GENE1 0.1 GENE2 0.2 GENE3 0.3', anno_pre, data_pre = data_pre,
-#'          universe = 10000)
-#' }
+#' calc <- workflow('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0', anno_pre,
+#'                  data_pre = data_pre, universe = 100)
 workflow <- function(input_raw, anno_pre, anno_opts = "file", data_pre,
                      info_from = "database", categories = NULL,
                      organisms = NULL, universe) {

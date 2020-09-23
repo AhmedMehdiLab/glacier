@@ -20,7 +20,6 @@ raw file contents as tibble
 Read delimited files into tibble
 }
 \examples{
-\dontrun{
-read_common('path/to/common.csv', ',', T)
-}
+file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+common_raw <- read_common(file, ",", FALSE)
 }

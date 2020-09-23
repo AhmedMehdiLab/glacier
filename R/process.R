@@ -14,12 +14,12 @@
 #' @importFrom rlang .data
 #'
 #' @examples
-#' \dontrun{
-#' anno_raw <- read_common('path/to/anno.csv', ',', T)
+#' file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(file, ",", FALSE)
 #' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-#' info <- anno_pre[c('name', 'info')]
-#' process_annotations(anno_pre, info, c('file', 'auto'))
-#' }
+#'
+#' info <- anno_pre[c("name", "info")]
+#' anno <- process_annotations(anno_pre, info, "file")
 process_annotations <- function(anno_pre, info, options) {
   anno <- anno_pre %>% dplyr::select(.data$name)
   info <- anno %>% dplyr::left_join(info, by = "name") %>% dplyr::pull(info)
@@ -76,11 +76,11 @@ process_annotations <- function(anno_pre, info, options) {
 #' @importFrom rlang .data
 #'
 #' @examples
-#' \dontrun{
-#' data_raw <- read_common('path/to/data.csv', ',', T)
-#' data_pre <- import_database(data_raw, c(2, 9), 10)
-#' process_database(data_pre, 'Not assigned', 'Not assigned')
-#' }
+#' file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
+#'
+#' data <- process_database(data_pre, 'Not assigned', 'Not assigned')
 process_database <- function(data_pre, categories = NULL, organisms = NULL) {
   info <- data_pre$gs_info %>%
     dplyr::filter(.data$category %in% categories, .data$organism %in% organisms)
@@ -103,8 +103,8 @@ process_database <- function(data_pre, categories = NULL, organisms = NULL) {
 #'
 #' @examples
 #' \dontrun{
-#' process_input_pre('GENE1 GENE2 GENE3')
-#' process_input_pre('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+#' input_pre <- process_input_pre('CYP1A1 CYP1B1 NQO1 SODD')
+#' input_pre <- process_input_pre('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 #' }
 process_input_pre <- function(input_raw) {
   tokens <- input_raw %>%
@@ -131,8 +131,8 @@ process_input_pre <- function(input_raw) {
 #'
 #' @examples
 #' \dontrun{
-#' input_pre <- process_input_pre('GENE1 GENE2 GENE3')
-#' process_input_post(input_pre)
+#' input_pre <- process_input_pre('CYP1A1 CYP1B1 NQO1 SODD')
+#' input <- process_input_post(input_pre)
 #' }
 process_input_post <- function(input_pre) {
   missing <- is.na(input_pre$value)
@@ -149,8 +149,8 @@ process_input_post <- function(input_pre) {
 #' @export
 #'
 #' @examples
-#' process_input('GENE1 GENE2 GENE3')
-#' process_input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+#' input <- process_input('CYP1A1 CYP1B1 NQO1 SODD')
+#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 process_input <- function(input_raw) {
   input_raw %>% process_input_pre() %>% process_input_post()
 }
@@ -165,18 +165,18 @@ process_input <- function(input_raw) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' anno_raw <- read_common('path/to/anno.csv', ',', T)
+#' anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(anno_file, ",", FALSE)
 #' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-#' info_pre <- anno_pre[c('name', 'info')]
-#' anno <- process_annotations(anno_pre, info_pre, c('file', 'auto'))
 #'
-#' data_raw <- read_common('path/to/data.csv', ',', T)
-#' data_pre <- import_database(data_raw, c(2, 9), 10)
+#' data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(data_file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
+#'
+#' info <- anno_pre[c("name", "info")]
+#' anno <- process_annotations(anno_pre, info, "file")
 #' data <- process_database(data_pre, 'Not assigned', 'Not assigned')
-#'
-#' annotation_map('annotation', anno$gs_annos, data$gs_genes)
-#' }
+#' annotation_map("Carcinogen", anno$gs_annos, data$gs_genes)
 annotation_map <- function(annotation, gs_annos, gs_genes) {
   index <- (gs_annos == annotation) %>% rowSums(na.rm = T) %>% as.logical()
   names <- gs_annos$name[index]
@@ -198,17 +198,20 @@ annotation_map <- function(annotation, gs_annos, gs_genes) {
 #'
 #' @examples
 #' \dontrun{
-#' anno_raw <- read_common('path/to/anno.csv', ',', T)
+#' anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(anno_file, ",", FALSE)
 #' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-#' info_pre <- anno_pre[c('name', 'info')]
-#' anno <- process_annotations(anno_pre, info_pre, c('file', 'auto'))
 #'
-#' data_raw <- read_common('path/to/data.csv', ',', T)
-#' data_pre <- import_database(data_raw, c(2, 9), 10)
+#' data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(data_file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
+#'
+#' info <- anno_pre[c("name", "info")]
+#' anno <- process_annotations(anno_pre, info, "file")
 #' data <- process_database(data_pre, 'Not assigned', 'Not assigned')
 #'
-#' input <- process_input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
-#' calculate_pre(input, anno$annos, anno$gs_annos, data$gs_genes)
+#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' calc_pre <- calculate_pre(input, anno$annos, anno$gs_annos, data$gs_genes)
 #' }
 calculate_pre <- function(input, annos, gs_annos, gs_genes) {
   stat <- tibble::tibble(
@@ -249,18 +252,21 @@ calculate_pre <- function(input, annos, gs_annos, gs_genes) {
 #'
 #' @examples
 #' \dontrun{
-#' anno_raw <- read_common('path/to/anno.csv', ',', T)
+#' anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(anno_file, ",", FALSE)
 #' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-#' info_pre <- anno_pre[c('name', 'info')]
-#' anno <- process_annotations(anno_pre, info_pre, c('file', 'auto'))
 #'
-#' data_raw <- read_common('path/to/data.csv', ',', T)
-#' data_pre <- import_database(data_raw, c(2, 9), 10)
+#' data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(data_file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
+#'
+#' info <- anno_pre[c("name", "info")]
+#' anno <- process_annotations(anno_pre, info, "file")
 #' data <- process_database(data_pre, 'Not assigned', 'Not assigned')
 #'
-#' input <- process_input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 #' calc_pre <- calculate_pre(input, anno$annos, anno$gs_annos, data$gs_genes)
-#' calculate_post(calc_pre$stats_pre, nrow(input), 10000)
+#' calc <- calculate_post(calc_pre$stats_pre, nrow(input), 100)
 #' }
 calculate_post <- function(stats_pre, input_count, universe) {
   stats_pre %<>% tibble::add_column(pvalue = 0, odds_r = 0)
@@ -313,20 +319,20 @@ calculate_post <- function(stats_pre, input_count, universe) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # import annotations
-#' anno_raw <- read_common('path/to/anno.csv', ',', T)
+#' anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(anno_file, ",", FALSE)
 #' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-#' info_pre <- anno_pre[c('name', 'info')]
-#' anno <- process_annotations(anno_pre, info_pre, c('file', 'auto'))
 #'
-#' data_raw <- read_common('path/to/data.csv', ',', T)
-#' data_pre <- import_database(data_raw, c(2, 9), 10)
+#' data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(data_file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
+#'
+#' info <- anno_pre[c("name", "info")]
+#' anno <- process_annotations(anno_pre, info, "file")
 #' data <- process_database(data_pre, 'Not assigned', 'Not assigned')
 #'
-#' input <- process_input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
-#' calculate(input$input, anno$annos, anno$gs_annos, data$gs_genes, 10000)
-#' }
+#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' calc <- calculate(input$input, anno$annos, anno$gs_annos, data$gs_genes, 100)
 calculate <- function(input, annos, gs_annos, gs_genes, universe) {
   calc_pre <- calculate_pre(input, annos, gs_annos, gs_genes)
   calc_post <- calculate_post(calc_pre$stats_pre, nrow(input), universe)

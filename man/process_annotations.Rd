@@ -22,10 +22,10 @@ tibble mapping gene sets to annotations and vector of annotations
 Process annotations
 }
 \examples{
-\dontrun{
-anno_raw <- read_common('path/to/anno.csv', ',', T)
+file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+anno_raw <- read_common(file, ",", FALSE)
 anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-info <- anno_pre[c('name', 'info')]
-process_annotations(anno_pre, info, c('file', 'auto'))
-}
+
+info <- anno_pre[c("name", "info")]
+anno <- process_annotations(anno_pre, info, "file")
 }

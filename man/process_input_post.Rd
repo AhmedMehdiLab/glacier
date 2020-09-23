@@ -17,7 +17,7 @@ Post-process gene string input
 }
 \examples{
 \dontrun{
-input_pre <- process_input_pre('GENE1 GENE2 GENE3')
-process_input_post(input_pre)
+input_pre <- process_input_pre('CYP1A1 CYP1B1 NQO1 SODD')
+input <- process_input_post(input_pre)
 }
 }

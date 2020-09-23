@@ -8,9 +8,8 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' read_common('path/to/common.csv', ',', T)
-#' }
+#' file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' common_raw <- read_common(file, ",", FALSE)
 read_common <- function(path, delim, header) {
   readr::read_delim(
     path, delim, col_types = readr::cols(.default = readr::col_character()),
@@ -29,10 +28,10 @@ read_common <- function(path, delim, header) {
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
 #'
-#' @examples
-#' \dontrun{
-#' common_raw <- read_common('path/to/common.csv', ',', T)
-#' import_common(common_raw, c(2, 9), 10)
+#' @examples \dontrun{
+#' file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' common_raw <- read_common(file, ",", FALSE)
+#' common_pre <- import_common(common_raw, c(2, 9), 10)
 #' }
 import_common <- function(common_raw, cols, info) {
   if (!dim(common_raw)[1] * dim(common_raw)[2]) stop("File is empty")
@@ -80,10 +79,9 @@ import_common <- function(common_raw, cols, info) {
 #' @importFrom magrittr %>%
 #'
 #' @examples
-#' \dontrun{
-#' anno_raw <- read_common('path/to/anno.csv', ',', T)
-#' import_annotations(anno_raw, c(2, 9), 10)
-#' }
+#' file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_raw <- read_common(file, ",", FALSE)
+#' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
 import_annotations <- function(anno_raw, cols = NULL, info = NULL) {
   anno_raw %>%
     import_common(cols, info) %>%
@@ -100,9 +98,8 @@ import_annotations <- function(anno_raw, cols = NULL, info = NULL) {
 #' @importFrom magrittr %>%
 #'
 #' @examples
-#' \dontrun{
-#' import_msigdb_xml('path/to/msigdb.xml')
-#' }
+#' file <- system.file("extdata", "ex_msig.xml", package = "glacier")
+#' data_pre <- import_msigdb_xml(file)
 import_msigdb_xml <- function(path) {
   data <- path %>% xml2::read_xml() %>% xml2::xml_children()
   catc <- data %>% xml2::xml_attr("CATEGORY_CODE")
@@ -141,10 +138,9 @@ import_msigdb_xml <- function(path) {
 #' @importFrom magrittr %>%
 #'
 #' @examples
-#' \dontrun{
-#' data_raw <- read.common('path/to/data.csv', ',', T)
-#' import_database(data_raw, c(2, 9), 10)
-#' }
+#' file <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_raw <- read_common(file, ",", FALSE)
+#' data_pre <- import_database(data_raw, c(2, 4), 0)
 import_database <- function(data_raw, data = NULL, info = NULL) {
   none <- as.factor("Not assigned")
   proc <- data_raw %>%

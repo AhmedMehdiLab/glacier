@@ -21,17 +21,20 @@ Finish statistical calculations
 }
 \examples{
 \dontrun{
-anno_raw <- read_common('path/to/anno.csv', ',', T)
+anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
+anno_raw <- read_common(anno_file, ",", FALSE)
 anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-info_pre <- anno_pre[c('name', 'info')]
-anno <- process_annotations(anno_pre, info_pre, c('file', 'auto'))
 
-data_raw <- read_common('path/to/data.csv', ',', T)
-data_pre <- import_database(data_raw, c(2, 9), 10)
+data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
+data_raw <- read_common(data_file, ",", FALSE)
+data_pre <- import_database(data_raw, c(2, 4), 0)
+
+info <- anno_pre[c("name", "info")]
+anno <- process_annotations(anno_pre, info, "file")
 data <- process_database(data_pre, 'Not assigned', 'Not assigned')
 
-input <- process_input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 calc_pre <- calculate_pre(input, anno$annos, anno$gs_annos, data$gs_genes)
-calculate_post(calc_pre$stats_pre, nrow(input), 10000)
+calc <- calculate_post(calc_pre$stats_pre, nrow(input), 100)
 }
 }

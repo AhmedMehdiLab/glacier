@@ -21,9 +21,9 @@ list of gene sets to genes, gene set information and vector of genes
 Process database
 }
 \examples{
-\dontrun{
-data_raw <- read_common('path/to/data.csv', ',', T)
-data_pre <- import_database(data_raw, c(2, 9), 10)
-process_database(data_pre, 'Not assigned', 'Not assigned')
-}
+file <- system.file("extdata", "ex_data.csv", package = "glacier")
+data_raw <- read_common(file, ",", FALSE)
+data_pre <- import_database(data_raw, c(2, 4), 0)
+
+data <- process_database(data_pre, 'Not assigned', 'Not assigned')
 }
