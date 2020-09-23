@@ -21,6 +21,7 @@ Pre-process common file type tibble
 }
 \examples{
 \dontrun{
-import.common(raw, c(2, 9), 10)
+common.raw <- read.common('path/to/common.csv', ',', T)
+import.common(common.raw, c(2, 9), 10)
 }
 }

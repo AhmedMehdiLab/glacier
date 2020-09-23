@@ -1,6 +1,4 @@
 context("Gene input pre-processing")
-library(glacier)
-
 library(magrittr)
 library(tibble)
 
@@ -70,5 +68,22 @@ test_that("post-processing works", {
   expect_equal(process.input.post(process.input.pre("a 0.1 b c d e 0.4")), list(input = BASE %>% 
     add_row(gene = "a", value = 0.1) %>% add_row(gene = "b", value = 0) %>% add_row(gene = "c", 
     value = 0) %>% add_row(gene = "d", value = 0) %>% add_row(gene = "e", value = 0.4), 
-    missing = c(F, T, T, T, F)))
+    missing = c(F, T, T, T, F))
+  )
+})
+
+test_that("combined processing works", {
+  expect_equal(process.input(""), list(input = BASE, missing = logical()))
+  expect_equal(process.input("a 0.1 b"), list(
+    input = BASE %>% add_row(gene = "a", value = 0.1) %>% add_row(gene = "b", value = 0), missing = c(F, T)))
+  expect_equal(
+    process.input("a 0.1 b c d e 0.4"),
+    list(input = BASE %>% 
+           add_row(gene = "a", value = 0.1) %>%
+           add_row(gene = "b", value = 0) %>%
+           add_row(gene = "c",  value = 0) %>%
+           add_row(gene = "d", value = 0) %>%
+           add_row(gene = "e", value = 0.4), 
+         missing = c(F, T, T, T, F))
+  )
 })

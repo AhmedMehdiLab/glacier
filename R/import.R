@@ -1,4 +1,4 @@
-#' Read common file type into tibble
+#' Read delimited files into tibble
 #'
 #' @param path path to file
 #' @param delim file delimiter
@@ -25,10 +25,12 @@ read.common <- function(path, delim, header) {
 #' @return pre-processed common file type tibble
 #'
 #' @importFrom magrittr %>%
+#' @importFrom rlang .data
 #'
 #' @examples
 #' \dontrun{
-#' import.common(raw, c(2, 9), 10)
+#' common.raw <- read.common('path/to/common.csv', ',', T)
+#' import.common(common.raw, c(2, 9), 10)
 #' }
 import.common <- function(common.raw, cols, info) {
   if (is.null(cols)) {
@@ -49,7 +51,8 @@ import.common <- function(common.raw, cols, info) {
   if (is.null(info) || !dplyr::between(info, 1, max)) {
     info <- character(1)
   } else {
-    info <- common.raw %>% dplyr::pull(info)
+    . <- NULL
+    info <- common.raw %>% dplyr::pull(info) %>% replace(is.na(.), "")
   }
   
   # process
@@ -59,7 +62,7 @@ import.common <- function(common.raw, cols, info) {
 
 #' Import annotation file
 #'
-#' @param common.raw raw file tibble or output of \code{\link{import.common}}
+#' @param anno.raw raw file tibble or output of \code{\link{import.common}}
 #' @param cols data column boundaries
 #' @param info info column
 #'
@@ -70,10 +73,15 @@ import.common <- function(common.raw, cols, info) {
 #'
 #' @examples
 #' \dontrun{
-#' import.annotations(raw, c(2, 9), 10)
+#' anno.raw <- read.common('path/to/anno.csv', ',', T)
+#' import.annotations(anno.raw, c(2, 9), 10)
 #' }
-import.annotations <- function(common.raw, cols = NULL, info = NULL) {
-  common.raw %>% import.common(cols, info) %>% dplyr::rename(anno. = dplyr::starts_with("data."))
+import.annotations <- function(anno.raw, cols = NULL, info = NULL) {
+  if (dim(anno.raw)[1] == 0 || dim(anno.raw)[2] == 0) {
+    stop("anno.raw is empty")
+  }
+  
+  anno.raw %>% import.common(cols, info) %>% dplyr::rename(anno. = dplyr::starts_with("data."))
 }
 
 #' Import MSigDB XML file
@@ -90,15 +98,15 @@ import.annotations <- function(common.raw, cols = NULL, info = NULL) {
 #' import.msigdb_xml('path/to/msigdb.xml')
 #' }
 import.msigdb_xml <- function(path) {
-  data <- path %>% xml2::read_xml %>% xml2::xml_children
+  data <- path %>% xml2::read_xml() %>% xml2::xml_children()
   catc <- data %>% xml2::xml_attr("CATEGORY_CODE")
   cats <- data %>% xml2::xml_attr("SUB_CATEGORY_CODE")
   
   # extract information
   info <- tibble::tibble(name = data %>% xml2::xml_attr("STANDARD_NAME"), info = data %>% 
     xml2::xml_attr("DESCRIPTION_BRIEF"), desc = data %>% xml2::xml_attr("DESCRIPTION_FULL") %>% 
-    as.factor(), category = stringr::str_c(catc, cats, sep = " ") %>% as.factor(), 
-    organism = data %>% xml2::xml_attr("ORGANISM") %>% as.factor())
+    as.factor(), category = stringr::str_c(catc, cats, sep = " ") %>% stringr::str_squish() %>%
+    as.factor(), organism = data %>% xml2::xml_attr("ORGANISM") %>% as.factor())
   
   # extract contents
   genes <- data %>% xml2::xml_attr("MEMBERS_SYMBOLIZED") %>% stringr::str_split(",") %>% 
@@ -109,7 +117,7 @@ import.msigdb_xml <- function(path) {
 
 #' Import database file
 #'
-#' @param common.raw raw file tibble or output of \code{\link{import.common}}
+#' @param data.raw raw file tibble or output of \code{\link{import.common}}
 #' @param data data column boundaries
 #' @param info info column
 #'
@@ -120,11 +128,16 @@ import.msigdb_xml <- function(path) {
 #'
 #' @examples
 #' \dontrun{
-#' import.database(raw, c(2, 9), 10)
+#' data.raw <- read.common('path/to/data.csv', ',', T)
+#' import.database(data.raw, c(2, 9), 10)
 #' }
-import.database <- function(common.raw, data = NULL, info = NULL) {
+import.database <- function(data.raw, data = NULL, info = NULL) {
+  if (dim(data.raw)[1] == 0 || dim(data.raw)[2] == 0) {
+    stop("data.raw is empty")
+  }
+  
   none <- as.factor("Not assigned")
-  proc <- common.raw %>% import.common(data, info) %>% tibble::add_column(category = none, 
+  proc <- data.raw %>% import.common(data, info) %>% tibble::add_column(category = none, 
     organism = none)
   
   # extract

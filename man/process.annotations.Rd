@@ -23,6 +23,9 @@ Process annotations
 }
 \examples{
 \dontrun{
+anno.raw <- read.common('path/to/anno.csv', ',', T)
+anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+info.pre <- anno.pre[c('name', 'info')]
 process.annotations(anno.pre, info.pre, c('file', 'auto'))
 }
 }

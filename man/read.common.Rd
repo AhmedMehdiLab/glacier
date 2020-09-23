@@ -2,7 +2,7 @@
 % Please edit documentation in R/import.R
 \name{read.common}
 \alias{read.common}
-\title{Read common file type into tibble}
+\title{Read delimited files into tibble}
 \usage{
 read.common(path, delim, header)
 }
@@ -17,7 +17,7 @@ read.common(path, delim, header)
 raw file contents as tibble
 }
 \description{
-Read common file type into tibble
+Read delimited files into tibble
 }
 \examples{
 \dontrun{

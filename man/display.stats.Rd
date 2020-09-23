@@ -16,9 +16,13 @@ display.stats(
 \arguments{
 \item{stats}{value from \code{\link{calculate}}}
 
-\item{value}{option for bar length}
+\item{value}{option for bar length as one of '# gene sets', '#genes',
+'# matches', 'P-value', 'Adjusted P-value', 'Odds Ratio', 'Fold Enrichment'
+or 'Adjusted Fold Enrichment'}
 
-\item{color}{option for bar color}
+\item{color}{option for bar color as one of '# gene sets', '#genes',
+'# matches', 'P-value', 'Adjusted P-value', 'Odds Ratio', 'Fold Enrichment'
+or 'Adjusted Fold Enrichment'}
 
 \item{value.trans}{optional value transformation}
 
@@ -34,6 +38,17 @@ Plot overlap statistics on a bar graph
 }
 \examples{
 \dontrun{
-display.stats(stats, value, color)
+anno.raw <- read.common('path/to/anno.csv', ',', T)
+anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+info.pre <- anno.pre[c('name', 'info')]
+anno <- process.annotations(anno.pre, info.pre, c('file', 'auto'))
+
+data.raw <- read.common('path/to/data.csv', ',', T)
+data.pre <- import.database(data.raw, c(2, 9), 10)
+data <- process.database(data.pre, 'Not assigned', 'Not assigned')
+
+input <- process.input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+stats <- calculate(input, anno$annos, anno$gs_annos, data$gs_genes, 10000)
+display.stats(stats$stats, 'Fold Enrichment', 'Adjusted P-value')
 }
 }

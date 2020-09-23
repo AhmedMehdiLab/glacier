@@ -4,10 +4,10 @@
 \alias{import.annotations}
 \title{Import annotation file}
 \usage{
-import.annotations(common.raw, cols = NULL, info = NULL)
+import.annotations(anno.raw, cols = NULL, info = NULL)
 }
 \arguments{
-\item{common.raw}{raw file tibble or output of \code{\link{import.common}}}
+\item{anno.raw}{raw file tibble or output of \code{\link{import.common}}}
 
 \item{cols}{data column boundaries}
 
@@ -21,6 +21,7 @@ Import annotation file
 }
 \examples{
 \dontrun{
-import.annotations(raw, c(2, 9), 10)
+anno.raw <- read.common('path/to/anno.csv', ',', T)
+import.annotations(anno.raw, c(2, 9), 10)
 }
 }

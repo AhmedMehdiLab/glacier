@@ -15,6 +15,9 @@
 #'
 #' @examples
 #' \dontrun{
+#' anno.raw <- read.common('path/to/anno.csv', ',', T)
+#' anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+#' info.pre <- anno.pre[c('name', 'info')]
 #' process.annotations(anno.pre, info.pre, c('file', 'auto'))
 #' }
 process.annotations <- function(anno.pre, info, options) {
@@ -48,10 +51,8 @@ process.annotations <- function(anno.pre, info, options) {
   }
   
   # generate annotation list
-  annos <- anno %>% dplyr::select(dplyr::starts_with("anno.")) %>% unlist(use.names = F) %>% 
-    unique() %>% purrr::discard(is.na)
-  
-  list(gs_annos = anno, annos = annos)
+  annos <- anno %>% dplyr::select(dplyr::starts_with("anno.")) %>% unlist(use.names = F) %>% unique()
+  list(gs_annos = anno, annos = annos[!is.na(annos) & annos != ""])
 }
 
 #' Process database
@@ -68,6 +69,8 @@ process.annotations <- function(anno.pre, info, options) {
 #'
 #' @examples
 #' \dontrun{
+#' data.raw <- read.common('path/to/data.csv', ',', T)
+#' data.pre <- import.database(data.raw, c(2, 9), 10)
 #' process.database(data.pre, 'Not assigned', 'Not assigned')
 #' }
 process.database <- function(data.pre, categories = NULL, organisms = NULL) {
@@ -76,7 +79,7 @@ process.database <- function(data.pre, categories = NULL, organisms = NULL) {
   sets <- data.pre$gs_genes[info$name]
   gene <- sets %>% unlist(use.names = F) %>% unique()
   
-  list(gs_genes = sets, info = info, genes = gene)
+  list(gs_genes = sets, gs_info = info, genes = gene)
 }
 
 #' Pre-process gene string input
@@ -152,7 +155,16 @@ process.input <- function(input.raw) {
 #'
 #' @examples
 #' \dontrun{
-#' annotation.map('annotation', gs_annos, gs_genes)
+#' anno.raw <- read.common('path/to/anno.csv', ',', T)
+#' anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+#' info.pre <- anno.pre[c('name', 'info')]
+#' anno <- process.annotations(anno.pre, info.pre, c('file', 'auto'))
+#' 
+#' data.raw <- read.common('path/to/data.csv', ',', T)
+#' data.pre <- import.database(data.raw, c(2, 9), 10)
+#' data <- process.database(data.pre, 'Not assigned', 'Not assigned')
+#' 
+#' annotation.map('annotation', anno$gs_annos, data$gs_genes)
 #' }
 annotation.map <- function(annotation, gs_annos, gs_genes) {
   index <- (gs_annos == annotation) %>% rowSums(na.rm = T) %>% as.logical()
@@ -171,9 +183,21 @@ annotation.map <- function(annotation, gs_annos, gs_genes) {
 #'
 #' @return partially-computed statistics and list of annotation matches
 #'
+#' @importFrom magrittr %>%
+#'
 #' @examples
 #' \dontrun{
-#' calculate.pre(input, annos, gs_annos, gs_genes)
+#' anno.raw <- read.common('path/to/anno.csv', ',', T)
+#' anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+#' info.pre <- anno.pre[c('name', 'info')]
+#' anno <- process.annotations(anno.pre, info.pre, c('file', 'auto'))
+#' 
+#' data.raw <- read.common('path/to/data.csv', ',', T)
+#' data.pre <- import.database(data.raw, c(2, 9), 10)
+#' data <- process.database(data.pre, 'Not assigned', 'Not assigned')
+#' 
+#' input <- process.input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+#' calculate.pre(input, anno$annos, anno$gs_annos, data$gs_genes)
 #' }
 calculate.pre <- function(input, annos, gs_annos, gs_genes) {
   stat <- tibble::tibble(name = annos, n_sets = 0L, n_gene = 0L, n_hits = 0L, g_hits = "")
@@ -183,7 +207,7 @@ calculate.pre <- function(input, annos, gs_annos, gs_genes) {
   for (i in seq_along(annos)) {
     # get related genes and find overlap
     overlap <- annotation.map(annos[i], gs_annos, gs_genes)
-    matches <- intersect(overlap$gene, input)
+    matches <- intersect(overlap$gene, input$gene)
     
     # store information
     stat$n_sets[i] <- length(overlap$sets)
@@ -208,7 +232,18 @@ calculate.pre <- function(input, annos, gs_annos, gs_genes) {
 #'
 #' @examples
 #' \dontrun{
-#' calculate.popst(stats.pre, 100, 10000)
+#' anno.raw <- read.common('path/to/anno.csv', ',', T)
+#' anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+#' info.pre <- anno.pre[c('name', 'info')]
+#' anno <- process.annotations(anno.pre, info.pre, c('file', 'auto'))
+#' 
+#' data.raw <- read.common('path/to/data.csv', ',', T)
+#' data.pre <- import.database(data.raw, c(2, 9), 10)
+#' data <- process.database(data.pre, 'Not assigned', 'Not assigned')
+#' 
+#' input <- process.input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+#' calc.pre <- calculate.pre(input, anno$annos, anno$gs_annos, data$gs_genes)
+#' calculate.post(calc.pre$stats.pre, nrow(input), 10000)
 #' }
 calculate.post <- function(stats.pre, input.count, universe) {
   stats.pre %<>% tibble::add_column(pvalue = 0, odds_r = 0)
@@ -241,7 +276,7 @@ calculate.post <- function(stats.pre, input.count, universe) {
 
 #' Calculate overlap statistics
 #'
-#' @param input output of \code{\link{process.input}}
+#' @param input value from \code{\link{process.input}}
 #' @param annos value from \code{\link{process.annotations}}
 #' @param gs_annos value from \code{\link{process.annotations}}
 #' @param gs_genes value from \code{\link{process.database}}
@@ -252,7 +287,17 @@ calculate.post <- function(stats.pre, input.count, universe) {
 #'
 #' @examples
 #' \dontrun{
-#' calculate(input, annos, gs_annos, gs_genes, 10000)
+#' anno.raw <- read.common('path/to/anno.csv', ',', T)
+#' anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+#' info.pre <- anno.pre[c('name', 'info')]
+#' anno <- process.annotations(anno.pre, info.pre, c('file', 'auto'))
+#' 
+#' data.raw <- read.common('path/to/data.csv', ',', T)
+#' data.pre <- import.database(data.raw, c(2, 9), 10)
+#' data <- process.database(data.pre, 'Not assigned', 'Not assigned')
+#' 
+#' input <- process.input('GENE1 0.1 GENE2 0.2 GENE3 0.3')
+#' calculate(input$input, anno$annos, anno$gs_annos, data$gs_genes, 10000)
 #' }
 calculate <- function(input, annos, gs_annos, gs_genes, universe) {
   calc.pre <- calculate.pre(input, annos, gs_annos, gs_genes)

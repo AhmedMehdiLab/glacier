@@ -4,10 +4,10 @@
 \alias{import.database}
 \title{Import database file}
 \usage{
-import.database(common.raw, data = NULL, info = NULL)
+import.database(data.raw, data = NULL, info = NULL)
 }
 \arguments{
-\item{common.raw}{raw file tibble or output of \code{\link{import.common}}}
+\item{data.raw}{raw file tibble or output of \code{\link{import.common}}}
 
 \item{data}{data column boundaries}
 
@@ -21,6 +21,7 @@ Import database file
 }
 \examples{
 \dontrun{
-import.database(raw, c(2, 9), 10)
+data.raw <- read.common('path/to/data.csv', ',', T)
+import.database(data.raw, c(2, 9), 10)
 }
 }

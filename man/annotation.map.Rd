@@ -21,6 +21,15 @@ Map annotation to gene sets and genes
 }
 \examples{
 \dontrun{
-annotation.map('annotation', gs_annos, gs_genes)
+anno.raw <- read.common('path/to/anno.csv', ',', T)
+anno.pre <- import.annotations(anno.raw, c(2, 9), 10)
+info.pre <- anno.pre[c('name', 'info')]
+anno <- process.annotations(anno.pre, info.pre, c('file', 'auto'))
+
+data.raw <- read.common('path/to/data.csv', ',', T)
+data.pre <- import.database(data.raw, c(2, 9), 10)
+data <- process.database(data.pre, 'Not assigned', 'Not assigned')
+
+annotation.map('annotation', anno$gs_annos, data$gs_genes)
 }
 }

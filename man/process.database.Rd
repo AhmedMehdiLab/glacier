@@ -22,6 +22,8 @@ Process database
 }
 \examples{
 \dontrun{
+data.raw <- read.common('path/to/data.csv', ',', T)
+data.pre <- import.database(data.raw, c(2, 9), 10)
 process.database(data.pre, 'Not assigned', 'Not assigned')
 }
 }
