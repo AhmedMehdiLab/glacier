@@ -35,3 +35,4 @@ info <- anno[c("name", "info")]
 anno_proc <- process_annotations(anno, info, "file")
 }
 }
+\keyword{internal}

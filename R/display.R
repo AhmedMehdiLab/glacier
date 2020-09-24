@@ -37,14 +37,13 @@ plot_overlap <- function(matches, value, input, stats, val_trans = "identity") {
   annos <- stats$Annotation %>% factor(., levels = .) %>% forcats::fct_rev()
 
   # helper function to find gene values
-  get_value <- function(gene, anno) {
+  get_value <- function(g, a) {
     if (value == "Gene Value") input %>%
-      dplyr::filter(.data$gene == gene) %>%
-      dplyr::pull(.data$gene)
+      dplyr::filter(.data$gene == g) %>%
+      dplyr::pull(.data$value)
     else stats %>%
-      dplyr::filter(.data$Annotation == anno) %>%
-      dplyr::select(!!value) %>%
-      dplyr::pull()
+      dplyr::filter(.data$Annotation == a) %>%
+      dplyr::pull(!!value)
   }
 
   # construct data grid

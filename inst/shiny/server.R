@@ -15,7 +15,7 @@ over_gene_max <- 100
 debounce_time <- 100
 datatable_opt <- list(dom = "tr", paging = F, scrollCollapse = T,
                       scrollY = "calc(100vh - 235px)")
-upload_file.t <- c("(Select type)" = "", "Annotations" = "anno",
+upload_file_t <- c("(Select type)" = "", "Annotations" = "anno",
                    "Database" = "data", "MSigDB XML" = "msig",
                    "Seurat RDS" = "cell")
 dim_reduction <- c(

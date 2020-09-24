@@ -12,6 +12,7 @@
 #'   \code{"file"} for manual annotations
 #' @param categories optional: categories to include; default all
 #' @param organisms optional: organisms to include; default all
+#' @param save optional: path to save overlap statistics as \code{.csv}
 #'
 #' @return
 #' \code{stats} tibble: overlap statistics
@@ -28,8 +29,9 @@
 #'
 #' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 #' results <- compute(input, anno, data, 10000)
-compute <- function(input, anno, data, universe, info_from = "database",
-                    anno_opts = "file", categories = NULL, organisms = NULL) {
+compute <- function(input, anno, data, universe = NULL, info_from = "database",
+                    anno_opts = "file", categories = FALSE, organisms = FALSE,
+                    save = NULL) {
   source <- if (info_from == "annotations") anno else data$gs_info
   info <- source %>% dplyr::select("name", "info")
 
@@ -37,8 +39,11 @@ compute <- function(input, anno, data, universe, info_from = "database",
   data_proc <- process_database(data, categories, organisms)
 
   # calculate statistics
-  calculate(input, anno_proc$annos, anno_proc$gs_annos, data_proc$gs_genes,
-            10000)
+  calc <- calculate(input, anno_proc$annos, anno_proc$gs_annos,
+                    data_proc$gs_genes, universe)
+
+  if (!is.null(save)) readr::write_csv(calc$stats, save)
+  return(calc)
 }
 
 #' Start web application

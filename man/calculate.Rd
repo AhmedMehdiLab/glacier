@@ -15,7 +15,8 @@ calculate(input, annos, gs_annos, gs_genes, universe)
 
 \item{gs_genes}{value from \code{\link{process_database}}}
 
-\item{universe}{number of genes in universe}
+\item{universe}{optional: number of genes in universe; default calculate from
+\code{gs_genes}}
 }
 \value{
 \code{stats} tibble: overlap statistics
@@ -41,3 +42,4 @@ calc <- calculate(input, anno_proc$annos, anno_proc$gs_annos,
                   data_proc$gs_genes, 10000)
 }
 }
+\keyword{internal}

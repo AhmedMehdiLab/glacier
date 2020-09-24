@@ -35,3 +35,4 @@ anno_assoc <- explore_annotation("Carcinogen", anno_proc$gs_annos,
                                  data_proc$gs_genes)
 }
 }
+\keyword{internal}

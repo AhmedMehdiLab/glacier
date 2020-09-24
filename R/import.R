@@ -5,6 +5,7 @@
 #' @param header whether file contains header
 #'
 #' @return tibble: file contents
+#' @keywords internal
 #'
 #' @examples \dontrun{
 #' path <- system.file("extdata", "ex_anno.csv", package = "glacier")
@@ -26,6 +27,7 @@ import_delim_path <- function(path, delim, header) {
 #' @param info column containing information
 #'
 #' @return tibble: renamed and cleaned file contents
+#' @keywords internal
 #'
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
@@ -63,6 +65,7 @@ import_delim_file <- function(file, content, info) {
 #' @param info column containing information
 #'
 #' @return glacier-specific imported annotations
+#' @keywords internal
 #'
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
@@ -141,6 +144,7 @@ import_msigdb <- function(path) {
 #' @param info column containing information
 #'
 #' @return glacier-specific imported database
+#' @keywords internal
 #'
 #' @importFrom magrittr %>%
 #' @examples \dontrun{

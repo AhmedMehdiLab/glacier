@@ -4,15 +4,15 @@
 \alias{process_database}
 \title{Process database}
 \usage{
-process_database(data, categories = NULL, organisms = NULL)
+process_database(data, categories = FALSE, organisms = FALSE)
 }
 \arguments{
 \item{data}{output of \code{\link{import_database}} or
 \code{\link{import_msigdb}}}
 
-\item{categories}{optional: categories to include; default none}
+\item{categories}{optional: categories to include; default all}
 
-\item{organisms}{optional: organisms to include; default none}
+\item{organisms}{optional: organisms to include; default all}
 }
 \value{
 \code{gs_genes} list: names: gene set names vector: genes
@@ -32,3 +32,4 @@ data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 data_proc <- process_database(data, "Not assigned", "Not assigned")
 }
 }
+\keyword{internal}

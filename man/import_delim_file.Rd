@@ -26,3 +26,4 @@ file <- import_delim_path(path, ",", FALSE)
 data <- import_delim_file(file, c(2, 10), 11)
 }
 }
+\keyword{internal}

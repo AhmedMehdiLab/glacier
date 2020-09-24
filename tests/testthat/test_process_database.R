@@ -11,7 +11,7 @@ test_that("simple databases can be processed", {
   none <- factor("Not assigned")
 
   expect_equal(
-    process_database(data),
+    process_database(data, NULL, NULL),
     list(
       gs_genes = list() %>% set_names(),
       gs_info = tibble(name = character(), info = character(), category = none,
@@ -35,7 +35,7 @@ test_that("complex databases can be processed", {
   none <- factor("Not assigned")
 
   expect_equal(
-    process_database(data),
+    process_database(data, NULL, NULL),
     list(
       gs_genes = list() %>% set_names(),
       gs_info = tibble(name = character(), info = character(), category = none,

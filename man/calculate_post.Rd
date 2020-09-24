@@ -36,3 +36,4 @@ calc_pre <- calculate_pre(input, anno_proc$annos, anno_proc$gs_annos,
 calc <- calculate_post(calc_pre$stats_pre, nrow(input), 10000)
 }
 }
+\keyword{internal}

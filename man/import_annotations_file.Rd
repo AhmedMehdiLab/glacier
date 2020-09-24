@@ -26,3 +26,4 @@ anno_file <- import_delim_path(anno_path, ",", FALSE)
 anno <- import_annotations_file(anno_file, c(2, 10), 11)
 }
 }
+\keyword{internal}

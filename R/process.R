@@ -15,6 +15,7 @@
 #' \code{gs_annos} tibble: gene sets and annotations
 #'
 #' \code{annos} vector: annotations
+#' @keywords internal
 #'
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
@@ -67,8 +68,8 @@ process_annotations <- function(anno, info, options) {
 #'
 #' @param data output of \code{\link{import_database}} or
 #'   \code{\link{import_msigdb}}
-#' @param categories optional: categories to include; default none
-#' @param organisms optional: organisms to include; default none
+#' @param categories optional: categories to include; default all
+#' @param organisms optional: organisms to include; default all
 #'
 #' @return
 #' \code{gs_genes} list: names: gene set names vector: genes
@@ -76,6 +77,7 @@ process_annotations <- function(anno, info, options) {
 #' \code{gs_info} tibble: gene set information
 #'
 #' \code{genes} vector: list of genes
+#' @keywords internal
 #'
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
@@ -85,9 +87,15 @@ process_annotations <- function(anno, info, options) {
 #'
 #' data_proc <- process_database(data, "Not assigned", "Not assigned")
 #' }
-process_database <- function(data, categories = NULL, organisms = NULL) {
-  gs_info <- data$gs_info %>%
-    dplyr::filter(.data$category %in% categories, .data$organism %in% organisms)
+process_database <- function(data, categories = FALSE, organisms = FALSE) {
+  # filter categories and organisms
+  gs_info <- data$gs_info
+  if (is.null(categories) || categories != FALSE)
+    gs_info <- gs_info %>% dplyr::filter(.data$category %in% categories)
+  if (is.null(organisms) || organisms != FALSE)
+    gs_info <- gs_info %>% dplyr::filter(.data$organism %in% organisms)
+
+  # extract gene sets and genes
   gs_genes <- data$gs_genes[gs_info$name]
   genes <- gs_genes %>% unlist(use.names = F) %>% unique()
 
@@ -136,6 +144,7 @@ process_input <- function(text) {
 #' \code{"names"} vector: gene set names
 #'
 #' \code{"genes"} vector: genes
+#' @keywords internal
 #'
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
@@ -169,6 +178,7 @@ explore_annotation <- function(annotation, gs_annos, gs_genes) {
 #' \code{stats_pre} tibble: overlap statistics (incomplete)
 #'
 #' \code{matches} list: names: annotations vector: matched genes
+#' @keywords internal
 #'
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
@@ -194,11 +204,11 @@ calculate_pre <- function(input, annos, gs_annos, gs_genes) {
   for (i in seq_along(annos)) {
     # get related genes and find overlap
     overlap <- explore_annotation(annos[i], gs_annos, gs_genes)
-    matches <- intersect(overlap$gene, input$gene)
+    matches <- intersect(overlap$genes, input$gene)
 
     # store information
-    stat$n_sets[i] <- length(overlap$sets)
-    stat$n_gene[i] <- length(overlap$gene)
+    stat$n_sets[i] <- length(overlap$names)
+    stat$n_gene[i] <- length(overlap$genes)
     stat$n_hits[i] <- length(matches)
     stat$g_hits[i] <- matches %>% stringr::str_c(collapse = ", ")
     hits[[annos[i]]] <- matches
@@ -214,6 +224,7 @@ calculate_pre <- function(input, annos, gs_annos, gs_genes) {
 #' @param universe number of genes in universe
 #'
 #' @return tibble: overlap statistics
+#' @keywords internal
 #'
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
@@ -275,13 +286,15 @@ calculate_post <- function(stats_pre, input_size, universe) {
 #' @param annos value from \code{\link{process_annotations}}
 #' @param gs_annos value from \code{\link{process_annotations}}
 #' @param gs_genes value from \code{\link{process_database}}
-#' @param universe number of genes in universe
+#' @param universe optional: number of genes in universe; default calculate from
+#'   \code{gs_genes}
 #'
-#' @return
-#' \code{stats} tibble: overlap statistics
+#' @return \code{stats} tibble: overlap statistics
 #'
 #' \code{matches} list: names: annotations vector: matched genes
+#' @keywords internal
 #'
+#' @importFrom magrittr %>%
 #' @examples \dontrun{
 #' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
 #' anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
@@ -297,6 +310,11 @@ calculate_post <- function(stats_pre, input_size, universe) {
 #'                   data_proc$gs_genes, 10000)
 #' }
 calculate <- function(input, annos, gs_annos, gs_genes, universe) {
+  if (is.null(universe)) {
+    genes <- gs_genes %>% unlist(use.names = F) %>% unique()
+    universe <- max(nrow(input), length(genes[!is.na(genes) & genes != ""]))
+  }
+
   calc_pre <- calculate_pre(input, annos, gs_annos, gs_genes)
   calc <- calculate_post(calc_pre$stats_pre, nrow(input), universe)
 

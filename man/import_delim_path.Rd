@@ -25,3 +25,4 @@ path <- system.file("extdata", "ex_anno.csv", package = "glacier")
 file <- import_delim_path(path, ",", FALSE)
 }
 }
+\keyword{internal}

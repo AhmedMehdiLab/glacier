@@ -39,3 +39,4 @@ calc_pre <- calculate_pre(input, anno_proc$annos, anno_proc$gs_annos,
                           data_proc$gs_genes)
 }
 }
+\keyword{internal}

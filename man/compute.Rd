@@ -8,11 +8,12 @@ compute(
   input,
   anno,
   data,
-  universe,
+  universe = NULL,
   info_from = "database",
   anno_opts = "file",
-  categories = NULL,
-  organisms = NULL
+  categories = FALSE,
+  organisms = FALSE,
+  save = NULL
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ for gene set symbols, \code{"info"} for gene set descriptions,
 \item{categories}{optional: categories to include; default all}
 
 \item{organisms}{optional: organisms to include; default all}
+
+\item{save}{optional: path to save overlap statistics as \code{.csv}}
 }
 \value{
 \code{stats} tibble: overlap statistics
