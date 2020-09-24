@@ -4,26 +4,31 @@
 \alias{process_database}
 \title{Process database}
 \usage{
-process_database(data_pre, categories = NULL, organisms = NULL)
+process_database(data, categories = NULL, organisms = NULL)
 }
 \arguments{
-\item{data_pre}{output of \code{\link{import_database}} or
-\code{\link{import_msigdb_xml}}}
+\item{data}{output of \code{\link{import_database}} or
+\code{\link{import_msigdb}}}
 
-\item{categories}{optionally filter categories}
+\item{categories}{optional: categories to include; default none}
 
-\item{organisms}{optionally filter organisms}
+\item{organisms}{optional: organisms to include; default none}
 }
 \value{
-list of gene sets to genes, gene set information and vector of genes
+\code{gs_genes} list: names: gene set names vector: genes
+
+\code{gs_info} tibble: gene set information
+
+\code{genes} vector: list of genes
 }
 \description{
-Process database
+Choose database category and organism for use in analysis.
 }
 \examples{
-file <- system.file("extdata", "ex_data.csv", package = "glacier")
-data_raw <- read_common(file, ",", FALSE)
-data_pre <- import_database(data_raw, c(2, 4), 0)
+\dontrun{
+data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 
-data <- process_database(data_pre, 'Not assigned', 'Not assigned')
+data_proc <- process_database(data, "Not assigned", "Not assigned")
+}
 }

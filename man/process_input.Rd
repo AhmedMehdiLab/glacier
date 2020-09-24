@@ -2,18 +2,19 @@
 % Please edit documentation in R/process.R
 \name{process_input}
 \alias{process_input}
-\title{Process gene string input}
+\title{Process text input}
 \usage{
-process_input(input_raw)
+process_input(text)
 }
 \arguments{
-\item{input_raw}{string input with genes and values}
+\item{text}{character: input with genes and optionally values}
 }
 \value{
-gene names, values and bitmap index of missing values
+tibble: "gene" gene names "value" gene values
 }
 \description{
-Process gene string input
+Removes duplicate genes. If multiple values for the same gene are found, only
+the first value will be kept.
 }
 \examples{
 input <- process_input('CYP1A1 CYP1B1 NQO1 SODD')

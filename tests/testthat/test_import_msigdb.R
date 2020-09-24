@@ -1,6 +1,5 @@
 context("Import MSigDB XML files")
 library(magrittr)
-library(purrr)
 library(tibble)
 
 msig_0 <- file.path("files", "msig_zero.xml")
@@ -9,7 +8,7 @@ msig_2 <- file.path("files", "msig_two.xml")
 
 test_that("blank MSigDB XML files can be imported", {
   expect_equal(
-    import_msigdb_xml(msig_0),
+    import_msigdb(msig_0),
     list(
       gs_genes = list() %>% set_names(character()),
       gs_info = tibble(
@@ -22,7 +21,7 @@ test_that("blank MSigDB XML files can be imported", {
 
 test_that("simple MSigDB XML files can be imported", {
   expect_equal(
-    import_msigdb_xml(msig_1),
+    import_msigdb(msig_1),
     list(
       gs_genes = list(SN1 = "GENE1"),
       gs_info = tibble(
@@ -35,7 +34,7 @@ test_that("simple MSigDB XML files can be imported", {
 
 test_that("complex MSigDB XML files can be imported", {
   expect_equal(
-    import_msigdb_xml(msig_2),
+    import_msigdb(msig_2),
     list(
       gs_genes = list(SN1 = "GENE1", SN2 = c("GENE1", "GENE2")),
       gs_info = tibble(

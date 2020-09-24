@@ -2,25 +2,28 @@
 % Please edit documentation in R/import.R
 \name{import_annotations}
 \alias{import_annotations}
-\title{Import annotation file}
+\title{Import delimited annotation file into glacier-specific format}
 \usage{
-import_annotations(anno_raw, cols = NULL, info = NULL)
+import_annotations(path, delim, header, content = NULL, info = NULL)
 }
 \arguments{
-\item{anno_raw}{raw file tibble or output of \code{\link{import_common}}}
+\item{path}{path to file}
 
-\item{cols}{data column boundaries}
+\item{delim}{file delimiter, usually \code{","} or \code{"\\t"}}
 
-\item{info}{info column}
+\item{header}{whether file contains header}
+
+\item{content}{vector: first and last column of content}
+
+\item{info}{column containing information}
 }
 \value{
-gene set annotations and information
+glacier-specific imported annotations
 }
 \description{
-Import annotation file
+Import delimited annotation file into glacier-specific format
 }
 \examples{
-file <- system.file("extdata", "ex_anno.csv", package = "glacier")
-anno_raw <- read_common(file, ",", FALSE)
-anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
+anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
+anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
 }

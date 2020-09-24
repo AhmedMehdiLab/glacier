@@ -1,159 +1,186 @@
 #' Read delimited files into tibble
 #'
 #' @param path path to file
-#' @param delim file delimiter
+#' @param delim file delimiter, usually \code{","} or \code{"\\t"}
 #' @param header whether file contains header
 #'
-#' @return raw file contents as tibble
-#' @export
-#'
-#' @examples
-#' file <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' common_raw <- read_common(file, ",", FALSE)
-read_common <- function(path, delim, header) {
-  readr::read_delim(
-    path, delim, col_types = readr::cols(.default = readr::col_character()),
-    col_names = header, trim_ws = T
-  )
-}
-
-#' Pre-process common file type tibble
-#'
-#' @param common_raw raw file tibble
-#' @param cols data column boundaries
-#' @param info info column
-#'
-#' @return pre-processed common file type tibble
-#'
-#' @importFrom magrittr %>%
-#' @importFrom rlang .data
+#' @return tibble: file contents
 #'
 #' @examples \dontrun{
-#' file <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' common_raw <- read_common(file, ",", FALSE)
-#' common_pre <- import_common(common_raw, c(2, 9), 10)
+#' path <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' file <- import_delim_path(path, ",", FALSE)
 #' }
-import_common <- function(common_raw, cols, info) {
-  if (!dim(common_raw)[1] * dim(common_raw)[2]) stop("File is empty")
+import_delim_path <- function(path, delim, header) {
+  type <- readr::cols(.default = readr::col_character())
+  file <- readr::read_delim(path, delim, col_types = type, col_names = header,
+                            trim_ws = TRUE)
 
-  if (is.null(cols)) {
-    start <- stop <- NULL
-  } else {
-    start <- cols[1]
-    stop <- cols[2]
+  if (nrow(file) * ncol(file)) return(file)
+  stop("File is empty")
+}
+
+#' Process tibble of file contents
+#'
+#' @param file output of \code{\link{import_delim_path}}
+#' @param content vector: first and last column of content
+#' @param info column containing information
+#'
+#' @return tibble: renamed and cleaned file contents
+#'
+#' @importFrom magrittr %>%
+#' @examples \dontrun{
+#' path <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' file <- import_delim_path(path, ",", FALSE)
+#' data <- import_delim_file(file, c(2, 10), 11)
+#' }
+import_delim_file <- function(file, content, info) {
+  if (is.null(content)) lhs <- rhs <- 0
+  else {
+    lhs <- content[1]
+    rhs <- content[2]
   }
 
   # validate
-  max <- ncol(common_raw)
-  if (is.null(start) || !dplyr::between(start, 1, max)) {
-    start <- min(2, max)
-  }
-  if (is.null(stop) || !dplyr::between(stop, 1, max)) {
-    stop <- max
-  }
-  if (is.null(info) || !dplyr::between(info, 1, max)) {
-    info <- character(1)
-  } else {
-    . <- NULL
-    info <- common_raw %>% dplyr::pull(info) %>% replace(is.na(.), "")
-  }
+  . <- NULL
+  end <- ncol(file)
+  if (lhs < 1 || lhs > end) lhs <- min(2, end)
+  if (rhs < 1 || rhs > end) rhs <- end
+
+  # extract
+  info <- if (is.null(info) || info < 1 || info > end) character(1)
+  else file %>% dplyr::pull(info) %>% replace(is.na(.), "")
 
   # process
-  common_raw %>%
-    dplyr::select(
-      name = if (ncol(common_raw)) 1,
-      data_ = dplyr::all_of(start:stop)
-    ) %>%
+  file %>%
+    dplyr::select(name = 1, data_ = dplyr::all_of(lhs:rhs)) %>%
     tibble::add_column(info = info)
 }
 
-#' Import annotation file
+#' Process tibble of annotation file contents
 #'
-#' @param anno_raw raw file tibble or output of \code{\link{import_common}}
-#' @param cols data column boundaries
-#' @param info info column
+#' @param anno_file output of \code{\link{import_delim_path}}
+#' @param content vector: first and last column of content
+#' @param info column containing information
 #'
-#' @return gene set annotations and information
-#' @export
+#' @return glacier-specific imported annotations
 #'
 #' @importFrom magrittr %>%
-#'
-#' @examples
-#' file <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' anno_raw <- read_common(file, ",", FALSE)
-#' anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
-import_annotations <- function(anno_raw, cols = NULL, info = NULL) {
-  anno_raw %>%
-    import_common(cols, info) %>%
+#' @examples \dontrun{
+#' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno_file <- import_delim_path(anno_path, ",", FALSE)
+#' anno <- import_annotations_file(anno_file, c(2, 10), 11)
+#' }
+import_annotations_file <- function(anno_file, content, info) {
+  anno_file %>%
+    import_delim_file(content, info) %>%
     dplyr::rename(anno_ = dplyr::starts_with("data_"))
 }
 
-#' Import MSigDB XML file
+#' Import delimited annotation file into glacier-specific format
+#'
+#' @param path path to file
+#' @param delim file delimiter, usually \code{","} or \code{"\\t"}
+#' @param header whether file contains header
+#' @param content vector: first and last column of content
+#' @param info column containing information
+#'
+#' @return glacier-specific imported annotations
+#' @export
+#'
+#' @importFrom magrittr %>%
+#' @examples
+#' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
+#' anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+import_annotations <- function(path, delim, header,
+                               content = NULL, info = NULL) {
+  path %>%
+    import_delim_path(delim, header) %>%
+    import_annotations_file(content, info)
+}
+
+#' Import MSigDB XML database file into glacier-specific format
 #'
 #' @param path path to file
 #'
-#' @return gene set contents and information
+#' @return glacier-specific imported database
 #' @export
 #'
 #' @importFrom magrittr %>%
-#'
 #' @examples
-#' file <- system.file("extdata", "ex_msig.xml", package = "glacier")
-#' data_pre <- import_msigdb_xml(file)
-import_msigdb_xml <- function(path) {
+#' msig_path <- system.file("extdata", "ex_msig.xml", package = "glacier")
+#' data <- import_msigdb(msig_path)
+import_msigdb <- function(path) {
   data <- path %>% xml2::read_xml() %>% xml2::xml_children()
-  catc <- data %>% xml2::xml_attr("CATEGORY_CODE")
-  cats <- data %>% xml2::xml_attr("SUB_CATEGORY_CODE")
 
   # extract information
-  info <- tibble::tibble(
-    name = data %>% xml2::xml_attr("STANDARD_NAME"),
-    info = data %>% xml2::xml_attr("DESCRIPTION_BRIEF"),
-    desc = data %>% xml2::xml_attr("DESCRIPTION_FULL") %>% as.factor(),
-    category = stringr::str_c(catc, cats, sep = " ") %>%
+  gs_info <- tibble::tibble(
+    name = xml2::xml_attr(data, "STANDARD_NAME"),
+    info = xml2::xml_attr(data, "DESCRIPTION_BRIEF"),
+    desc = xml2::xml_attr(data, "DESCRIPTION_FULL") %>% as.factor(),
+    category = stringr::str_c(xml2::xml_attr(data, "CATEGORY_CODE"),
+                              xml2::xml_attr(data, "SUB_CATEGORY_CODE"),
+                              sep = " ") %>%
       stringr::str_squish() %>%
       as.factor(),
-    organism = data %>% xml2::xml_attr("ORGANISM") %>% as.factor()
+    organism = xml2::xml_attr(data, "ORGANISM") %>% as.factor()
   )
 
-  # extract contents
-  genes <- data %>%
-    xml2::xml_attr("MEMBERS_SYMBOLIZED") %>%
+  # extract genes
+  gs_genes <- xml2::xml_attr(data, "MEMBERS_SYMBOLIZED") %>%
     stringr::str_split(",") %>%
     purrr::map(~.[. != ""]) %>%
-    purrr::set_names(info$name)
+    purrr::set_names(gs_info$name)
 
-  list(gs_genes = genes, gs_info = info)
+  list(gs_genes = gs_genes, gs_info = gs_info)
 }
 
-#' Import database file
+#' Process tibble of database file contents
 #'
-#' @param data_raw raw file tibble or output of \code{\link{import_common}}
-#' @param data data column boundaries
-#' @param info info column
+#' @param data_file output of \code{\link{import_delim_path}}
+#' @param content vector: first and last column of content
+#' @param info column containing information
 #'
-#' @return gene set contents and information
-#' @export
+#' @return glacier-specific imported database
 #'
 #' @importFrom magrittr %>%
-#'
-#' @examples
-#' file <- system.file("extdata", "ex_data.csv", package = "glacier")
-#' data_raw <- read_common(file, ",", FALSE)
-#' data_pre <- import_database(data_raw, c(2, 4), 0)
-import_database <- function(data_raw, data = NULL, info = NULL) {
+#' @examples \dontrun{
+#' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data_file <- import_delim_path(data_path, ",", FALSE)
+#' data <- import_database_file(data_file, c(2, 4), 0)
+#' }
+import_database_file <- function(data_file, content, info) {
   none <- as.factor("Not assigned")
-  proc <- data_raw %>%
-    import_common(data, info) %>%
+  proc <- data_file %>%
+    import_delim_file(content, info) %>%
     tibble::add_column(category = none, organism = none)
 
   # extract
-  info <- proc %>% dplyr::select(-dplyr::starts_with("data_"))
-  genes <- proc %>%
+  gs_info <- proc %>% dplyr::select(!dplyr::starts_with("data_"))
+  gs_genes <- proc %>%
     dplyr::select(dplyr::starts_with("data_")) %>%
     purrr::pmap(c, use.names = F) %>%
     purrr::map(~.[!is.na(.)]) %>%
-    purrr::set_names(info$name)
+    purrr::set_names(gs_info$name)
 
-  list(gs_genes = genes, gs_info = info)
+  list(gs_genes = gs_genes, gs_info = gs_info)
+}
+
+#' Import delimited database file into glacier-specific format
+#'
+#' @param path path to file
+#' @param delim file delimiter, usually \code{","} or \code{"\\t"}
+#' @param header whether file contains header
+#' @param content vector: first and last column of content
+#' @param info column containing information
+#'
+#' @return glacier-specific imported database
+#' @export
+#'
+#' @examples
+#' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
+import_database <- function(path, delim, header, content = NULL, info = NULL) {
+  path %>%
+    import_delim_path(delim, header) %>%
+    import_database_file(content, info)
 }

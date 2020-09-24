@@ -2,25 +2,28 @@
 % Please edit documentation in R/import.R
 \name{import_database}
 \alias{import_database}
-\title{Import database file}
+\title{Import delimited database file into glacier-specific format}
 \usage{
-import_database(data_raw, data = NULL, info = NULL)
+import_database(path, delim, header, content = NULL, info = NULL)
 }
 \arguments{
-\item{data_raw}{raw file tibble or output of \code{\link{import_common}}}
+\item{path}{path to file}
 
-\item{data}{data column boundaries}
+\item{delim}{file delimiter, usually \code{","} or \code{"\\t"}}
 
-\item{info}{info column}
+\item{header}{whether file contains header}
+
+\item{content}{vector: first and last column of content}
+
+\item{info}{column containing information}
 }
 \value{
-gene set contents and information
+glacier-specific imported database
 }
 \description{
-Import database file
+Import delimited database file into glacier-specific format
 }
 \examples{
-file <- system.file("extdata", "ex_data.csv", package = "glacier")
-data_raw <- read_common(file, ",", FALSE)
-data_pre <- import_database(data_raw, c(2, 4), 0)
+data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 }

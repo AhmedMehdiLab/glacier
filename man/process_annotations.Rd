@@ -4,28 +4,34 @@
 \alias{process_annotations}
 \title{Process annotations}
 \usage{
-process_annotations(anno_pre, info, options)
+process_annotations(anno, info, options)
 }
 \arguments{
-\item{anno_pre}{output of \code{\link{import_annotations}}}
+\item{anno}{output of \code{\link{import_annotations}}}
 
-\item{info}{tibble of gene set name 'name' and information 'info'}
+\item{info}{tibble: "name" gene set name "info" gene set descriptions}
 
-\item{options}{'name' for gene set names, 'syms' for gene set symbols,
-'info' for gene set information, 'auto' for automatically generated
-annotations, 'file' for manual annotations}
+\item{options}{\code{"name"} for gene set names, \code{"syms"} for gene set
+symbols, \code{"info"} for gene set descriptions, \code{"auto"} for
+automatically generated annotations and/or \code{"file"} for manual
+annotations}
 }
 \value{
-tibble mapping gene sets to annotations and vector of annotations
+\code{gs_annos} tibble: gene sets and annotations
+
+\code{annos} vector: annotations
 }
 \description{
-Process annotations
+Choose annotations to include in annotation list, from gene set names, gene
+set symbols, gene set descriptions, annotations automatically extracted from
+gene set descriptions or manual annotations.
 }
 \examples{
-file <- system.file("extdata", "ex_anno.csv", package = "glacier")
-anno_raw <- read_common(file, ",", FALSE)
-anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
+\dontrun{
+anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
+anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+info <- anno[c("name", "info")]
 
-info <- anno_pre[c("name", "info")]
-anno <- process_annotations(anno_pre, info, "file")
+anno_proc <- process_annotations(anno, info, "file")
+}
 }

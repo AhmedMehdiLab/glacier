@@ -1,34 +1,22 @@
 Package: glacier
-Type: Package
 Title: Gene List Annotation, Calculation and Illustration of Enrichment in R
-Version: 0.9.0
+Version: 0.10.1
 Authors@R: person("Lilin", "Yang", email = "lilin.yang@uq.net.au",
     role = c("aut", "cre"))
-Description: A package to parse, calculate and display gene list annotation
-    enrichment.
+Description: A package to calculate and illustrate overlap statistics. Functions
+    include those for importing .csv and .xml files describing gene set
+    annotations and gene set contents; those for parsing gene name and gene
+    value input from a text string; and those for calculating enrichment
+    statistics given the above. Additionally, functions for plotting said
+    statistics, as well as gene-annotation matches, are included.
+Depends: R (>= 4.0.0)
 License: file LICENSE
+URL: https://github.com/lilin-yang/glacier
+BugReports: https://github.com/lilin-yang/glacier/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
-Imports: 
-    dplyr,
-    forcats,
-    ggplot2,
-    htmltools,
-    magrittr,
-    purrr,
-    readr,
-    rlang,
-    shiny,
-    shinyjs,
-    shinythemes,
-    shinyWidgets,
-    stringr,
-    tibble,
-    tidyr,
-    tools,
-    xml2
-Suggests: 
-    limma,
-    Seurat,
+Imports: dplyr, forcats, ggplot2, magrittr, purrr, readr, rlang, stringr,
+    tibble, tidyr, tools, xml2
+Suggests: htmltools, limma, Seurat, shiny, shinyjs, shinythemes, shinyWidgets,
     testthat

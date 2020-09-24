@@ -2,39 +2,37 @@
 % Please edit documentation in R/process.R
 \name{calculate_post}
 \alias{calculate_post}
-\title{Finish statistical calculations}
+\title{Finish calculating overlap statistics}
 \usage{
-calculate_post(stats_pre, input_count, universe)
+calculate_post(stats_pre, input_size, universe)
 }
 \arguments{
 \item{stats_pre}{value from \code{\link{calculate_pre}}}
 
-\item{input_count}{number of genes in input}
+\item{input_size}{number of genes in input}
 
 \item{universe}{number of genes in universe}
 }
 \value{
-overlap statistics
+tibble: overlap statistics
 }
 \description{
-Finish statistical calculations
+Finish calculating overlap statistics
 }
 \examples{
 \dontrun{
-anno_file <- system.file("extdata", "ex_anno.csv", package = "glacier")
-anno_raw <- read_common(anno_file, ",", FALSE)
-anno_pre <- import_annotations(anno_raw, c(2, 9), 10)
+anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
+anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 
-data_file <- system.file("extdata", "ex_data.csv", package = "glacier")
-data_raw <- read_common(data_file, ",", FALSE)
-data_pre <- import_database(data_raw, c(2, 4), 0)
-
-info <- anno_pre[c("name", "info")]
-anno <- process_annotations(anno_pre, info, "file")
-data <- process_database(data_pre, 'Not assigned', 'Not assigned')
+info <- anno[c("name", "info")]
+anno_proc <- process_annotations(anno, info, "file")
+data_proc <- process_database(data, "Not assigned", "Not assigned")
 
 input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
-calc_pre <- calculate_pre(input, anno$annos, anno$gs_annos, data$gs_genes)
-calc <- calculate_post(calc_pre$stats_pre, nrow(input), 100)
+calc_pre <- calculate_pre(input, anno_proc$annos, anno_proc$gs_annos,
+                          data_proc$gs_genes)
+calc <- calculate_post(calc_pre$stats_pre, nrow(input), 10000)
 }
 }
