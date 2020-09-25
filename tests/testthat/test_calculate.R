@@ -14,19 +14,19 @@ test_that("calculations can be performed on simple inputs", {
 
   anno_proc <- process_annotations(anno, info, "file")
   data_proc <- process_database(data)
-  input <- process_input("")
+  input <- process_input_text("")
   expect_error(calculate(input, anno_proc$annos, anno_proc$gs_annos,
                          data_proc$gs_genes, 10000), NA)
 
-  input <- process_input("a")
+  input <- process_input_text("a")
   expect_error(calculate(input, anno_proc$annos, anno_proc$gs_annos,
                          data_proc$gs_genes, 10000), NA)
 
-  input <- process_input("a 0.1 b 0.3 c 0.8 d e f g 0.9")
+  input <- process_input_text("a 0.1 b 0.3 c 0.8 d e f g 0.9")
   expect_error(calculate(input, anno_proc$annos, anno_proc$gs_annos,
                          data_proc$gs_genes, 10000), NA)
 
-  input <- process_input("GENE1 GENE2 GENE3 0.2")
+  input <- process_input_text("GENE1 GENE2 GENE3 0.2")
   expect_error(calculate(input, anno_proc$annos, anno_proc$gs_annos,
                          data_proc$gs_genes, 10000), NA)
 })
@@ -38,19 +38,19 @@ test_that("calculations can be performed on complex inputs", {
 
   anno_proc <- process_annotations(anno, info, "file")
   data_proc <- process_database(data)
-  input <- process_input("")
+  input <- process_input_text("")
   expect_error(calculate(input, anno_proc$annos, anno_proc$gs_annos,
                          data_proc$gs_genes, 10000), NA)
 
-  input <- process_input("a")
+  input <- process_input_text("a")
   expect_error(calculate(input, anno_proc$annos, anno_proc$gs_annos,
                          data_proc$gs_genes, 10000), NA)
 
-  input <- process_input("a 0.1 b 0.3 c 0.8 d e f g 0.9")
+  input <- process_input_text("a 0.1 b 0.3 c 0.8 d e f g 0.9")
   expect_error(calculate(input, anno_proc$annos, anno_proc$gs_annos,
                          data_proc$gs_genes, 10000), NA)
 
-  input <- process_input("GENE1 GENE2 GENE3 0.2")
+  input <- process_input_text("GENE1 GENE2 GENE3 0.2")
   expect_error(calculate(input, anno_proc$annos, anno_proc$gs_annos,
                          data_proc$gs_genes, 10000), NA)
 })

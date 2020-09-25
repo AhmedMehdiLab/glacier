@@ -115,9 +115,9 @@ process_database <- function(data, categories = FALSE, organisms = FALSE) {
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
 #' @examples
-#' input <- process_input('CYP1A1 CYP1B1 NQO1 SODD')
-#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
-process_input <- function(text) {
+#' input <- process_input_text('CYP1A1 CYP1B1 NQO1 SODD')
+#' input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+process_input_text <- function(text) {
   tokens <- text %>%
     stringr::str_split("[ \t\r\n,;]") %>%
     unlist() %>%
@@ -132,6 +132,38 @@ process_input <- function(text) {
   genes <- tibble::tibble(gene = tokens, value = values) %>%
     tidyr::drop_na(.data$gene) %>%
     dplyr::distinct(.data$gene, .keep_all = T)
+}
+
+#' Extract differentially expressed genes from Seurat object
+#'
+#' Finds differentially expressed genes, records adjusted P-value and filters
+#' for values less than \code{max_p}.
+#'
+#' @param seurat Seurat object
+#' @param clst_1 first cluster
+#' @param clst_2 optional: second cluster; default all others
+#' @param max_p P-value cutoff, only genes with P-values less than this will be
+#'   returned
+#'
+#' @return tibble: "gene" gene names "value" gene values
+#' @export
+#'
+#' @importFrom magrittr %>%
+#' @importFrom rlang .data
+#' @examples \dontrun{
+#' seu <- readRDS("path/to/seurat.rds")
+#' input <- process_input_seurat(seu, 1)
+#' }
+process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
+  if (!requireNamespace("Seurat", quietly = T))
+    stop("Library 'Seurat' is required for this feature")
+
+  seurat %>%
+    Seurat::FindMarkers(ident.1 = clst_1, ident.2 = clst_2) %>%
+    tibble::rownames_to_column("name") %>%
+    tibble::tibble() %>%
+    dplyr::select("name", value = "p_val_adj") %>%
+    dplyr::filter(.data$value <= max_p)
 }
 
 #' Find an annotation's associated gene sets and genes
@@ -169,13 +201,13 @@ explore_annotation <- function(annotation, gs_annos, gs_genes) {
 
 #' Begin calculating overlap statistics
 #'
-#' @param input output of \code{\link{process_input}}
+#' @param input output of \code{\link{process_input_text}} or
+#'   \code{\link{process_input_seurat}}
 #' @param annos value from \code{\link{process_annotations}}
 #' @param gs_annos value from \code{\link{process_annotations}}
 #' @param gs_genes value from \code{\link{process_database}}
 #'
-#' @return
-#' \code{stats_pre} tibble: overlap statistics (incomplete)
+#' @return \code{stats_pre} tibble: overlap statistics (incomplete)
 #'
 #' \code{matches} list: names: annotations vector: matched genes
 #' @keywords internal
@@ -282,7 +314,8 @@ calculate_post <- function(stats_pre, input_size, universe) {
 
 #' Calculate overlap statistics
 #'
-#' @param input output of \code{\link{process_input}}
+#' @param input output of \code{\link{process_input_text}} or
+#'   \code{\link{process_input_seurat}}
 #' @param annos value from \code{\link{process_annotations}}
 #' @param gs_annos value from \code{\link{process_annotations}}
 #' @param gs_genes value from \code{\link{process_database}}

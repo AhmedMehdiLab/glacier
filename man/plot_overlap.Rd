@@ -15,7 +15,8 @@ plot_overlap(matches, value, input, stats, val_trans = "identity")
 \code{"Fold Enrichment"} or \code{"Adjusted Fold Enrichment"} for values
 from \code{stats}}
 
-\item{input}{output of \code{\link{process_input}}}
+\item{input}{output of \code{\link{process_input_text}} or
+\code{\link{process_input_seurat}}}
 
 \item{stats}{value from \code{\link{compute}}}
 
@@ -38,7 +39,7 @@ anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
 data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
 data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 
-input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 results <- compute(input, anno, data, 10000)
 over <- plot_overlap(results$matches, "Gene Value", input, results$stats)
 }

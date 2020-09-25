@@ -12,7 +12,8 @@
 #'   \code{"P-value"}, \code{"Adjusted P-value"}, \code{"Odds Ratio"},
 #'   \code{"Fold Enrichment"} or \code{"Adjusted Fold Enrichment"} for values
 #'   from \code{stats}
-#' @param input output of \code{\link{process_input}}
+#' @param input output of \code{\link{process_input_text}} or
+#'   \code{\link{process_input_seurat}}
 #' @param stats value from \code{\link{compute}}
 #' @param val_trans optional: value transformation, see \code{trans} argument in
 #'   \code{\link[ggplot2]{scale_continuous}}; default \code{"identity"}
@@ -28,7 +29,7 @@
 #' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
 #' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 #'
-#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 #' results <- compute(input, anno, data, 10000)
 #' over <- plot_overlap(results$matches, "Gene Value", input, results$stats)
 plot_overlap <- function(matches, value, input, stats, val_trans = "identity") {
@@ -95,7 +96,7 @@ plot_overlap <- function(matches, value, input, stats, val_trans = "identity") {
 #' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
 #' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 #'
-#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 #' results <- compute(input, anno, data, 10000)
 #' stat <- plot_stats(results$stats, 'Fold Enrichment', 'Adjusted P-value')
 plot_stats <- function(stats, value, color, val_trans = "identity",

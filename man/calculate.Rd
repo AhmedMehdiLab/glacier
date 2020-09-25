@@ -7,7 +7,8 @@
 calculate(input, annos, gs_annos, gs_genes, universe)
 }
 \arguments{
-\item{input}{output of \code{\link{process_input}}}
+\item{input}{output of \code{\link{process_input_text}} or
+\code{\link{process_input_seurat}}}
 
 \item{annos}{value from \code{\link{process_annotations}}}
 

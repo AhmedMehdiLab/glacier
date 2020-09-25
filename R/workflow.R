@@ -1,6 +1,7 @@
 #' Perform computations on imported and processed data
 #'
-#' @param input output of \code{\link{process_input}}
+#' @param input output of \code{\link{process_input_text}} or
+#'   \code{\link{process_input_seurat}}
 #' @param anno output of \code{\link{import_annotations}}
 #' @param data output of \code{\link{import_database}} or
 #'   \code{\link{import_msigdb}}
@@ -27,7 +28,7 @@
 #' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
 #' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 #'
-#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 #' results <- compute(input, anno, data, 10000)
 compute <- function(input, anno, data, universe = NULL, info_from = "database",
                     anno_opts = "file", categories = FALSE, organisms = FALSE,
@@ -53,9 +54,9 @@ webstart <- function() {
   if (!requireNamespace("shiny", quietly = F) ||
       !requireNamespace("shinyjs", quietly = F) ||
       !requireNamespace("shinythemes", quietly = F) ||
-      !requireNamespace("shinyWidgets", quietly = F)) {
-    stop("Shiny-related packages are not available, install and try again")
-  }
+      !requireNamespace("shinyWidgets", quietly = F))
+    stop("Libraries 'shiny', 'shinyjs', 'shinythemes' and 'shinyWidgets' are \
+         required for this feature")
 
   shiny::runApp(system.file("shiny", package = "glacier"))
 }
