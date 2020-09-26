@@ -65,7 +65,7 @@ overPane <- tabPanel(
 cellPane <- tabPanel(
   NULL, br(), icon = icon("screenshot", lib = "glyphicon"),
   selectInput("cell.overview", "Overview plot", NULL),
-  numericInput("cell.downsample", "Downsample", 50, 1), hr(),
+  numericInput("cell.downsample", "Downsample", 50, 3), hr(),
   
   selectInput("cell.plot", "Expression plot", c("Dot Plot" = "dot", "Feature Plot" = "feat", "Heatmap" = "heat", "Ridge Plot" = "ridge", "Violin Plot" = "violin"), "feat"),
   selectInput("cell.anno", "Annotation", NULL),

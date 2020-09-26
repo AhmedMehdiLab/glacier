@@ -1,6 +1,6 @@
 Package: glacier
 Title: Gene List Annotation, Calculation and Illustration of Enrichment in R
-Version: 0.10.8
+Version: 0.11.0
 Authors@R: person("Lilin", "Yang", email = "lilin.yang@uq.net.au",
     role = c("aut", "cre"))
 Description: A package to calculate and illustrate overlap statistics. Functions

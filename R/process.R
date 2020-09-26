@@ -195,7 +195,6 @@ process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
 #'                                  data_proc$gs_genes)
 #' }
 explore_annotation <- function(annotation, gs_annos, gs_genes, genes = NULL) {
-  . <- NULL
   index <- (gs_annos == annotation) %>% rowSums(na.rm = T) %>% as.logical()
   match <- gs_genes[gs_annos$name[index]]
   if (!is.null(genes))
@@ -203,7 +202,7 @@ explore_annotation <- function(annotation, gs_annos, gs_genes, genes = NULL) {
 
   names <- names(match)
   genes <- match %>% unlist(use.names = F) %>% unique()
-  list(names = names, genes = genes)
+  list(names = names, genes = if (is.null(genes)) character() else genes)
 }
 
 #' Begin calculating overlap statistics

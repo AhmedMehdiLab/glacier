@@ -17,7 +17,7 @@ OVER_GENE_MAX <- 100
 
 DT_OPTS <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 235px)")
 DIM_RED <- c("Principal component analysis" = "pca", "Independent component analysis" = "ica", "t-distributed Stochastic Neighbor Embedding" = "tsne", "Uniform Manifold Approximation and Projection" = "umap")
-options(shiny.maxRequestSize = 5 * 1024 ^ 3, shiny.sanitize.errors = T)
+options(shiny.maxRequestSize = 5 * 1024 ^ 3)
 
 server <- function(input, output, session) {
   store <- reactiveValues(anno = list(), cell = list(), data = list(), proc = reactiveValues())
@@ -40,9 +40,9 @@ server <- function(input, output, session) {
   
   # load data
   anno_raw <- reactive(store$anno[[req(input$anno.source)]])
-  cell_raw <- reactive(store$cell[[req(input$cell.source)]])
+  cell_raw <- reactive(if (requireNamespace("Seurat", quietly = T)) store$cell[[req(input$cell.source)]])
   data_raw <- reactive(store$data[[req(input$data.source)]])
-  info_raw <- reactive(if (input$info.source == "anno") anno_raw() else data_raw())
+  info_raw <- reactive(if (input$info.source == "anno") anno_raw() else data_raw()$gs_info)
   universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% unique %>% length %>% max(nrow(input_proc())))
   
   clusts <- reactive(levels(cell_raw()))
@@ -59,7 +59,7 @@ server <- function(input, output, session) {
   anno_proc <- reactive(glacier:::process_annotations(anno_raw(), info(), input$anno.types))
   cell_proc <- reactive(process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "all_clusts") input$cell.compare))
   data_proc <- reactive(glacier:::process_database(data_raw(), input$data.categories, input$data.organisms))
-  text_proc <- reactive(input$input.text %>% process_input_text) %>% debounce(100)
+  text_proc <- reactive(input$input.text %>% process_input_text) %>% debounce(1000)
   cell_reductions <- reactive(DIM_RED[DIM_RED %in% names(cell_raw()@reductions)])
   input_proc <- reactive(if (input$input.source == "text") text_proc() else cell_proc())
   
@@ -105,12 +105,12 @@ server <- function(input, output, session) {
   calc_pre <- reactive(glacier:::calculate_pre(input_proc(), anno_list(), anno_proc()$gs_annos, data_proc()$gs_genes))
   calc_post <- reactive(glacier:::calculate_post(calc_pre()$stats_pre, nrow(input_proc()), input$input.universe))
   
-  bars_stat <- reactive(calc_post() %>% arrange(if (input$bars.anno.order == "Annotation") str_to_lower(Annotation) else .data[[input$bars.anno.order]]))
-  over_anno <- reactive(calc_post() %>% arrange(if (input$over.anno.order == "Annotation") str_to_lower(Annotation) else .data[[input$over.anno.order]]) %>% pull(Annotation))
-  over_gene <- reactive(
-    if (input$over.gene.order == "input") input_proc()$gene
-    else if (input$over.gene.order == "names") input_proc() %>% str_sort(numeric = T)
-    else if (input$over.gene.order == "value") input_proc() %>% arrange(value) %>% pull(gene)
+  bars_stat <- reactive(calc_post() %>% arrange(if (input$bars.anno.order == "Annotation") str_to_lower(Annotation) else desc(.data[[input$bars.anno.order]])))
+  over_stat <- reactive(calc_post() %>% arrange(if (input$over.anno.order == "Annotation") str_to_lower(Annotation) else desc(.data[[input$over.anno.order]])))
+  over_input <- reactive(
+    if (input$over.gene.order == "input") input_proc()
+    else if (input$over.gene.order == "names") input_proc() %>% arrange(gene)
+    else if (input$over.gene.order == "value") input_proc() %>% arrange(value)
   )
   
   # tertiary controls
@@ -120,32 +120,54 @@ server <- function(input, output, session) {
     outputOptions(output, ui, suspendWhenHidden = F)
   }
   init_text_range("bars.anno.select", BARS_ANNO_MAX, function() bars_stat()$Annotation)
-  init_text_range("over.anno.select", OVER_ANNO_MAX, function() req(over_anno()))
-  init_text_range("over.gene.select", OVER_GENE_MAX, function() req(over_gene()))
+  init_text_range("over.anno.select", OVER_ANNO_MAX, function() over_stat()$Annotation)
+  init_text_range("over.gene.select", OVER_GENE_MAX, function() over_input()$gene)
   
   auto_text_range <- function(ui, limit, items) {
     lpos <- which(items == input[[ui]][1])
     rpos <- which(items == input[[ui]][2])
     
-    store[[ui]] <- if (!length(lpos) || !length(rpos)) c(1, min(length(items), limit))
+    store[[ui]] <- if (!length(lpos) || !length(rpos)) c(1, min(length(items), limit + 1))
     else if (rpos - lpos <= limit) c(lpos, rpos)
     else if (lpos != store[[ui]][1]) c(lpos, lpos + limit)
     else if (rpos != store[[ui]][2]) c(rpos - limit, rpos)
     updateSliderTextInput(session, ui, NULL, items[store[[ui]]])
   }
   observeEvent(input$bars.anno.select, auto_text_range("bars.anno.select", BARS_ANNO_MAX, bars_stat()$Annotation))
-  observeEvent(input$over.anno.select, auto_text_range("over.anno.select", OVER_ANNO_MAX, over_anno()))
-  observeEvent(input$over.gene.select, auto_text_range("over.gene.select", OVER_GENE_MAX, over_gene()))
+  observeEvent(input$over.anno.select, auto_text_range("over.anno.select", OVER_ANNO_MAX, over_stat()$Annotation))
+  observeEvent(input$over.gene.select, auto_text_range("over.gene.select", OVER_GENE_MAX, over_input()$gene))
   observe(updateVarSelectInput(session, "info.columns", NULL, data_info(), names(data_info())))
   observe(updateVarSelectInput(session, "stat.columns", NULL, calc_post(), names(calc_post())))
+  observe(toggleState("cell.gene.cluster", input$cell.gene.match))
   
   # crop data
   view_bars <- reactive(bars_stat()[store$bars.anno.select[1]:store$bars.anno.select[2], ])
-  view_over_anno <- reactive(over_anno()[store$over.anno.select[1]:store$over.anno.select[2]])
-  view_over_gene <- reactive(over_gene()[store$over.gene.select[1]:store$over.gene.select[2]])
-  view_cell_gene <- reactive(input$cell.genes) %>% debounce(100)
+  view_over <- reactive(over_stat()[store$over.anno.select[1]:store$over.anno.select[2], ])
+  view_over_gene <- reactive(over_input()[store$over.gene.select[1]:store$over.gene.select[2], ])
+  view_cell_gene <- reactive(input$cell.genes) %>% debounce(1000)
+  view_cell_gene_clust <- reactive(cell_raw() %>% Seurat::FindAllMarkers(features = view_cell_gene()) %>% group_by(cluster) %>% pull(gene))
   
   # secondary information
   view_table <- function(table, cols, split) table %>% select(!!!cols) %>% mutate(across(!!split, str_replace_all, "_", ifelse(input$name.fix, " ", "_")))
   output$bars <- renderPlot(plot_stats(view_bars(), input$bars.value, input$bars.color, input$bars.value.trans, input$bars.color.trans, input$bars.anno.sort))
+  output$over <- renderPlot(plot_overlap(calc_pre()$matches, input$over.color, view_over_gene(), view_over(), input$over.color.trans))
+  output$cell <- renderPlot(if (requireNamespace("Seurat", quietly = T)) Seurat::DimPlot(cell_raw(), reduction = input$cell.overview, label = T, repel = T))
+  output$heat <- renderPlot({
+    if (!requireNamespace("Seurat", quietly = T) || !length(view_cell_gene())) return(NULL)
+    
+    feats <- if (input$cell.gene.match && input$cell.gene.cluster) view_cell_gene_clust() else view_cell_gene()
+    if (input$cell.plot != "heat") feats <- unique(feats)
+    
+    width <- feats %>% length %>% sqrt %>% ceiling
+    sample <- subset(cell_raw(), downsample = input$cell.downsample)
+    if (input$cell.plot == "dot") Seurat::DotPlot(sample, features = feats)
+    else if (input$cell.plot == "feat") Seurat::FeaturePlot(sample, features = feats, ncol = width)
+    else if (input$cell.plot == "heat") Seurat::DoHeatmap(sample, features = feats)
+    else if (input$cell.plot == "ridge") Seurat::RidgePlot(sample, features = feats, ncol = width)
+    else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
+  })
+  output$stat <- renderDataTable(view_table(calc_post(), input$stat.columns, "Annotation"), DT_OPTS)
+  output$info <- renderDataTable(view_table(data_info(), input$info.columns, "Gene Set"), DT_OPTS)
+  
+  output$file.down <- downloadHandler("glacier_results.csv", . %>% write_csv(calc_post(), .))
 }
