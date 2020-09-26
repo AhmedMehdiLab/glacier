@@ -1,3 +1,11 @@
+# constants
+split_1 <- stringr::str_c(sep = "|", " in comparison between ", " upon ",
+                          " in comparison of ", " in ", " during ", " after ")
+split_2 <- stringr::str_c(sep = "|", " versus ", " vs ", " before ", " after ",
+                          " compared to ")
+form_lhs <- stringr::str_glue("(?:{split_1})(.*)(?:{split_2})")
+form_rhs <- stringr::str_glue("(?:{split_2})(.*?)\\.?$")
+
 #' Process annotations
 #'
 #' Choose annotations to include in annotation list, from gene set names, gene
@@ -30,14 +38,6 @@ process_annotations <- function(anno, info, options) {
   info <- anno_proc %>%
     dplyr::left_join(info, by = "name") %>%
     dplyr::pull("info")
-
-  # constants
-  split_1 <- stringr::str_c(sep = "|", " in comparison between ", " upon ",
-                            " in comparison of ", " in ", " during ", " after ")
-  split_2 <- stringr::str_c(sep = "|", " versus ", " vs ", " before ",
-                            " after ", " compared to ")
-  form_lhs <- stringr::str_glue("(?:{split_1})(.*)(?:{split_2})")
-  form_rhs <- stringr::str_glue("(?:{split_2})(.*?)\\.?$")
 
   # extract annotations
   if ("name" %in% options) anno_proc$anno_name <- anno_proc$name
@@ -157,12 +157,14 @@ process_input_text <- function(text) {
 process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
   if (!requireNamespace("Seurat", quietly = T))
     stop("Library 'Seurat' is required for this feature")
+  if (!is.null(clst_2) && clst_1 == clst_2)
+    return(tibble::tibble(gene = character(), value = numeric()))
 
   seurat %>%
     Seurat::FindMarkers(ident.1 = clst_1, ident.2 = clst_2) %>%
-    tibble::rownames_to_column("name") %>%
+    tibble::rownames_to_column("gene") %>%
     tibble::tibble() %>%
-    dplyr::select("name", value = "p_val_adj") %>%
+    dplyr::select("gene", value = "p_val_adj") %>%
     dplyr::filter(.data$value <= max_p)
 }
 
@@ -171,6 +173,7 @@ process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
 #' @param annotation annotation to explore
 #' @param gs_annos value from \code{\link{process_annotations}}
 #' @param gs_genes value from \code{\link{process_database}}
+#' @param genes optional: genes to match, or (default) all
 #'
 #' @return
 #' \code{"names"} vector: gene set names
@@ -191,11 +194,15 @@ process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
 #' anno_assoc <- explore_annotation("Carcinogen", anno_proc$gs_annos,
 #'                                  data_proc$gs_genes)
 #' }
-explore_annotation <- function(annotation, gs_annos, gs_genes) {
+explore_annotation <- function(annotation, gs_annos, gs_genes, genes = NULL) {
+  . <- NULL
   index <- (gs_annos == annotation) %>% rowSums(na.rm = T) %>% as.logical()
-  names <- gs_annos$name[index]
-  genes <- gs_genes[names] %>% unlist(use.names = F) %>% unique()
+  match <- gs_genes[gs_annos$name[index]]
+  if (!is.null(genes))
+    match <- match %>% purrr::map(~intersect(., genes)) %>% purrr::compact()
 
+  names <- names(match)
+  genes <- match %>% unlist(use.names = F) %>% unique()
   list(names = names, genes = genes)
 }
 

@@ -57,6 +57,11 @@ webstart <- function() {
       !requireNamespace("shinyWidgets", quietly = F))
     stop("Libraries 'shiny', 'shinyjs', 'shinythemes' and 'shinyWidgets' are \
          required for this feature")
+  
+  if (!requireNamespace("Seurat", quietly = F) ||
+      !requireNamespace("limma", quietly = F))
+    warning("Libraries 'Seurat' and (Bioconductor) 'limma' are required for \
+            some features")
 
   shiny::runApp(system.file("shiny", package = "glacier"))
 }

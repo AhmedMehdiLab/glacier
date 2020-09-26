@@ -4,7 +4,7 @@
 \alias{explore_annotation}
 \title{Find an annotation's associated gene sets and genes}
 \usage{
-explore_annotation(annotation, gs_annos, gs_genes)
+explore_annotation(annotation, gs_annos, gs_genes, genes = NULL)
 }
 \arguments{
 \item{annotation}{annotation to explore}
@@ -12,6 +12,8 @@ explore_annotation(annotation, gs_annos, gs_genes)
 \item{gs_annos}{value from \code{\link{process_annotations}}}
 
 \item{gs_genes}{value from \code{\link{process_database}}}
+
+\item{genes}{optional: genes to match, or (default) all}
 }
 \value{
 \code{"names"} vector: gene set names
