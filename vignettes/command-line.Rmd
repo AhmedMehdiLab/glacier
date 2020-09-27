@@ -2,7 +2,7 @@
 title: "Command-line usage"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Command-line usage}
+  %\VignetteIndexEntry{console}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,6 +16,10 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(glacier)
+```
+
+```{r echo = FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
 ## Introduction

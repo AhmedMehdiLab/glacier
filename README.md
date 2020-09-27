@@ -36,7 +36,7 @@ You can install the development version of glacier from from
 [GitHub](https://github.com/) with:
 
     # install.packages("devtools")
-    devtools::install_github("lilin-yang/glacier")
+    devtools::install_github("lilin-yang/glacier", build_vignettes = TRUE)
 
 Description
 -----------
@@ -54,7 +54,7 @@ glacier has three main types of functions:
     calculated statistics in a graph.
 
 An example of these functions in action can be seen in
-`vignette("Command-line usage")`.
+`vignette("console", package = "glacier")`.
 
 Web application
 ---------------

@@ -42,7 +42,7 @@ You can install the development version of glacier from from [GitHub](https://gi
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("lilin-yang/glacier")
+devtools::install_github("lilin-yang/glacier", build_vignettes = TRUE)
 ```
 ## Description
 
@@ -59,7 +59,8 @@ into a glacier-specific intermediate format.
 * The `plot_statistics()` and `plot_overlap()` functions display the calculated
 statistics in a graph.
 
-An example of these functions in action can be seen in `vignette("Command-line usage")`.
+An example of these functions in action can be seen in
+`vignette("console", package = "glacier")`.
 
 ## Web application
 
