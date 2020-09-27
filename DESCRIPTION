@@ -17,7 +17,7 @@ Description: A package to calculate and illustrate overlap statistics. Functions
     statistics given the above. Additionally, functions for plotting said
     statistics, as well as gene-annotation matches, are included.
 Depends: R (>= 4.0.0)
-License: GPL-3
+License: file LICENCE
 URL: https://github.com/lilin-yang/glacier
 BugReports: https://github.com/lilin-yang/glacier/issues
 Encoding: UTF-8
