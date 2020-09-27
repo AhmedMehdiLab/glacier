@@ -4,6 +4,7 @@ library(shinyWidgets)
 
 library(dplyr)
 library(magrittr)
+library(purrr)
 library(readr)
 library(stringr)
 library(tools)
@@ -15,6 +16,7 @@ LOAD_EXAMPLES <- TRUE
 BARS_ANNO_MAX <- 80
 OVER_ANNO_MAX <- 80
 OVER_GENE_MAX <- 100
+DEBOUNCE_TIME <- 1000
 
 DT_OPTS <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 235px)")
 DIM_RED <- c("Principal component analysis" = "pca", "Independent component analysis" = "ica", "t-distributed Stochastic Neighbor Embedding" = "tsne", "Uniform Manifold Approximation and Projection" = "umap")
@@ -66,19 +68,23 @@ server <- function(input, output, session) {
   anno_proc <- reactive(glacier:::process_annotations(anno_raw(), info(), input$anno.types))
   cell_proc <- reactive(process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "all_clusts") input$cell.compare))
   data_proc <- reactive(glacier:::process_database(data_raw(), input$data.categories, input$data.organisms))
-  text_proc <- reactive(input$input.text %>% process_input_text) %>% debounce(1000)
+  text_proc <- reactive(input$input.text %>% process_input_text) %>% debounce(DEBOUNCE_TIME)
   cell_reductions <- reactive(DIM_RED[DIM_RED %in% names(cell_raw()@reductions)])
   input_proc <- reactive(if (input$input.source == "text") text_proc() else cell_proc())
   
   # derive data
   anno_list <- reactive(tryCatch(anno_proc()$annos %>% str_subset(input$anno.regex) %>% as.character, error = function(e) character()))
   anno_only <- reactive(setdiff(anno_sets(), data_sets()))
+  cell_gene <- reactive(rownames(cell_raw()))
   anno_sets <- reactive(anno_proc()$gs_anno$name)
   data_list <- reactive(data_proc()$genes)
   data_info <- reactive(data_proc()$gs_info %>% select(`Gene Set` = name, Information = info, Description = any_of("desc"), Category = category, Organism = organism))
   data_only <- reactive(setdiff(data_sets(), anno_sets()))
   data_sets <- reactive(data_proc()$gs_info$name)
-  anno_map <- reactive(glacier:::explore_annotation(input$cell.anno, anno_proc()$gs_annos, data_proc()$gs_genes, if (input$cell.gene.match) input_proc()$gene)$genes)
+  
+  cell_gene_list <- reactive(if (input$cell.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
+  cell_anno_list <- reactive(anno_list() %>% str_sort() %>% set_names(.) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
+  cell_anno_gene <- reactive(cell_anno_list()[[input$cell.anno]])
   
   gene_ok <- reactive(intersect(input_proc()$gene, data_list()))
   gene_no <- reactive(setdiff(input_proc()$gene, data_list()))
@@ -99,8 +105,8 @@ server <- function(input, output, session) {
   output$vals.no <- renderText(str_c(vals_no(), collapse = ", "))
   
   # actions
-  observe(updateSelectInput(session, "cell.anno", NULL, anno_list()))
-  observe(updateSelectInput(session, "cell.genes", NULL, anno_map(), head(anno_map(), 16)))
+  observe(updateSelectInput(session, "cell.anno", NULL, names(cell_anno_list())))
+  observe(updateSelectInput(session, "cell.genes", NULL, cell_anno_gene(), head(cell_anno_gene(), 16)))
   observe(updateSelectInput(session, "cell.overview", NULL, cell_reductions()))
   observeEvent(c(anno_only(), data_only()), {
     removeNotification(store$note.overlap)
@@ -129,6 +135,9 @@ server <- function(input, output, session) {
   init_text_range("bars.anno.select", BARS_ANNO_MAX, function() bars_stat()$Annotation)
   init_text_range("over.anno.select", OVER_ANNO_MAX, function() over_stat()$Annotation)
   init_text_range("over.gene.select", OVER_GENE_MAX, function() over_input()$gene)
+  bars_anno_select <- reactive(input$bars.anno.select) %>% debounce(DEBOUNCE_TIME)
+  over_anno_select <- reactive(input$over.anno.select) %>% debounce(DEBOUNCE_TIME)
+  over_gene_select <- reactive(input$over.gene.select) %>% debounce(DEBOUNCE_TIME)
   
   auto_text_range <- function(ui, limit, items) {
     lpos <- which(items == input[[ui]][1])
@@ -140,9 +149,9 @@ server <- function(input, output, session) {
     else if (rpos != store[[ui]][2]) c(rpos - limit, rpos)
     updateSliderTextInput(session, ui, NULL, items[store[[ui]]])
   }
-  observeEvent(input$bars.anno.select, auto_text_range("bars.anno.select", BARS_ANNO_MAX, bars_stat()$Annotation))
-  observeEvent(input$over.anno.select, auto_text_range("over.anno.select", OVER_ANNO_MAX, over_stat()$Annotation))
-  observeEvent(input$over.gene.select, auto_text_range("over.gene.select", OVER_GENE_MAX, over_input()$gene))
+  observeEvent(bars_anno_select(), auto_text_range("bars.anno.select", BARS_ANNO_MAX, bars_stat()$Annotation))
+  observeEvent(over_anno_select(), auto_text_range("over.anno.select", OVER_ANNO_MAX, over_stat()$Annotation))
+  observeEvent(over_gene_select(), auto_text_range("over.gene.select", OVER_GENE_MAX, over_input()$gene))
   observe(updateVarSelectInput(session, "info.columns", NULL, data_info(), names(data_info())))
   observe(updateVarSelectInput(session, "stat.columns", NULL, calc_post(), names(calc_post())))
   observe(toggleState("cell.gene.cluster", input$cell.gene.match))
@@ -151,7 +160,7 @@ server <- function(input, output, session) {
   view_bars <- reactive(bars_stat()[store$bars.anno.select[1]:store$bars.anno.select[2], ])
   view_over <- reactive(over_stat()[store$over.anno.select[1]:store$over.anno.select[2], ])
   view_over_gene <- reactive(over_input()[store$over.gene.select[1]:store$over.gene.select[2], ])
-  view_cell_gene <- reactive(input$cell.genes) %>% debounce(1000)
+  view_cell_gene <- reactive(input$cell.genes) %>% debounce(DEBOUNCE_TIME)
   view_cell_gene_clust <- reactive(cell_raw() %>% Seurat::FindAllMarkers(features = view_cell_gene()) %>% group_by(cluster) %>% pull(gene))
   
   # secondary information

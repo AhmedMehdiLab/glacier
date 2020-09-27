@@ -1,4 +1,8 @@
 # glacier (development)
+## glacier 0.12.2
+* Attempt to fix slider bouncing issue
+* Make single-cell annotation selection easier to use
+
 ## glacier 0.12.1
 * Fix bug with automatic universe size calculation
 * Updated examples
