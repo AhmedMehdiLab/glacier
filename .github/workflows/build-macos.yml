@@ -6,7 +6,7 @@
 # See https://github.com/r-lib/actions/tree/master/examples#readme for
 # additional example workflows available for the R community.
 
-name: build
+name: build-macos
 
 on:
   push:
@@ -30,10 +30,9 @@ jobs:
       - name: Install dependencies
         run: |
           install.packages(c("remotes", "rcmdcheck"))
-          remotes::install_deps()
+          remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
       - name: Check
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
-        env:
-          _R_CHECK_FORCE_SUGGESTS_: 0
         shell: Rscript {0}
+

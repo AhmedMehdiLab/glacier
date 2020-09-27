@@ -7,7 +7,7 @@ glacier <img src="man/figures/icon.png" align="right" height="139">
 <!-- badges: start -->
 
 [![master-build-macos Actions
-Status](https://github.com/lilin-yang/glacier/workflows/build/badge.svg)](https://github.com/lilin-yang/glacier/actions)
+Status](https://github.com/lilin-yang/glacier/workflows/build-macos/badge.svg)](https://github.com/lilin-yang/glacier/actions)
 <!-- badges: end -->
 
 The goal of glacier is to calculate annotation overlap statistics for
