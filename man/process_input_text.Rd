@@ -17,6 +17,6 @@ Removes duplicate genes. If multiple values for the same gene are found, only
 the first value will be kept.
 }
 \examples{
-input <- process_input_text('CYP1A1 CYP1B1 NQO1 SODD')
-input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+input <- process_input_text("FCN1 FTL CLU")
+input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 }

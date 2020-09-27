@@ -22,15 +22,14 @@ Finish calculating overlap statistics
 \examples{
 \dontrun{
 anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
 data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
-
 info <- anno[c("name", "info")]
+
 anno_proc <- process_annotations(anno, info, "file")
 data_proc <- process_database(data, "Not assigned", "Not assigned")
-
-input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 calc_pre <- calculate_pre(input, anno_proc$annos, anno_proc$gs_annos,
                           data_proc$gs_genes)
 calc <- calculate_post(calc_pre$stats_pre, nrow(input), 10000)

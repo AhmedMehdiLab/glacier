@@ -40,11 +40,11 @@ Plot overlap statistics as a bar graph
 }
 \examples{
 anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
 data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 
 input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
-results <- compute(input, anno, data, 10000)
+results <- compute(input, anno, data)
 stat <- plot_stats(results$stats, 'Fold Enrichment', 'Adjusted P-value')
 }

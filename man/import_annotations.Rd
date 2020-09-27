@@ -25,5 +25,5 @@ Import delimited annotation file into glacier-specific format
 }
 \examples{
 anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 }

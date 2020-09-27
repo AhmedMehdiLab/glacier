@@ -24,8 +24,8 @@ Finds differentially expressed genes, records adjusted P-value and filters
 for values less than \code{max_p}.
 }
 \examples{
-\dontrun{
-seu <- readRDS("path/to/seurat.rds")
-input <- process_input_seurat(seu, 1)
-}
+seu_path <- system.file("extdata", "ex_seurat.rds", package = "glacier")
+seurat <- readRDS(seu_path)
+
+input <- process_input_seurat(seurat, 0)
 }

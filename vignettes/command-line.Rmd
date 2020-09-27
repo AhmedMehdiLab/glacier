@@ -30,26 +30,29 @@ anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
 ```
 Annotations must first be imported from annotation files. Annotation files
 contain the gene set name, followed by a list of annotations, and finally an
-optional description. Below is an example of an annotation file.
+optional description. Below is an example of an annotation file, notice that it
+contains a header and a description:
 
 ```{r echo = FALSE}
-knitr::kable(read.csv(anno_path, header = F), "pipe")
+knitr::kable(read.csv(anno_path, header = T), "pipe")
 ```
 
 Annotations can thus be imported:
 
 ```{r}
-anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 ```
 
 ## Databases
 ```{r}
 data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+msig_path <- system.file("extdata", "ex_msig.xml", package = "glacier")
 ```
 
 Databases must also be imported from database files. Database files contain the
 gene set name, followed by a list of genes, and finally an optional description.
-Below is an example of a database file.
+Below is an example of a database file, notice that it contains neither a header
+nor a description:
 
 ```{r echo = FALSE}
 knitr::kable(read.csv(data_path, header = F), "pipe")
@@ -65,15 +68,15 @@ Databases in the Molecular Signatures Database (MSigDB) XML format can also be
 imported. These databases will allow filtering of categories and organisms later
 on. For example:
 
-```{r eval = FALSE}
-msig <- import_msigdb("path/to/msigdb.xml")
+```{r}
+msig <- import_msigdb(msig_path)
 ```
 
 ## Genes
 Genes and gene values can be imported from the console. For example:
 
 ```{r}
-gene_only <- process_input_text("CYP1A1 CYP1B1 NQO1 HBA1 MERTK")
+gene_only <- process_input_text("FCN1 FTL CLU")
 ```
 
 Gene values can also be placed alongside gene names. However, these values will
@@ -81,14 +84,17 @@ only be used when creating the overlap heatmap, and will not be used in the
 calculation of overlap statistics. For example:
 
 ```{r}
-gene_vals <- process_input_text("CYP1A1 .2 CYP1B1 .4 NQO1 1 HBA1 .6 MERTK .3")
+gene_vals <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 ```
 
 Gene values can also be imported from Seurat objects. At least one cluster of
 interest must be specified. For example:
 
-```{r eval = FALSE}
-gene_seurat <- process_input_seurat(seurat_obj, "cluster 1")
+```{r}
+seurat_path <- system.file("extdata", "ex_seurat.rds", package = "glacier")
+seurat_data <- readRDS(seurat_path)
+
+gene_seurat <- process_input_seurat(seurat_data, 0)
 ```
 
 ## Computation
@@ -99,8 +105,8 @@ stats <- compute(gene_only, anno, data)
 ```
 
 Upon completion, a list of annotation-gene matches, along with the overlap
-statistics will be returned. The following is an example of the overlap
-statistics:
+statistics will be returned. The following is an example of the statistics
+calculated:
 
 ```{r echo = FALSE}
 knitr::kable(stats$stats, "pipe")
@@ -109,7 +115,7 @@ knitr::kable(stats$stats, "pipe")
 ## Plot statistics
 The results of the overlap calculation can then be plotted:
 
-```{r fig.height = 8, fig.width = 7}
+```{r fig.height = 3, fig.width = 7}
 plot_stats(stats$stats, "Fold Enrichment", "Adjusted P-value")
 ```
 
@@ -117,6 +123,6 @@ plot_stats(stats$stats, "Fold Enrichment", "Adjusted P-value")
 The list of annotation-gene matches can also be plotted. Here, the gene values
 from the input above are used for coloring the boxes:
 
-```{r fig.height = 8, fig.width = 7}
+```{r fig.height = 3, fig.width = 7}
 plot_overlap(stats$matches, "Gene Value", gene_vals, stats$stats)
 ```

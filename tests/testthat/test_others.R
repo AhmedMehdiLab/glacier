@@ -2,34 +2,34 @@ context("Additional tests")
 library(magrittr)
 library(tibble)
 
-anno_file <- file.path("files", "anno_two.csv")
-data_file <- file.path("files", "data_two.csv")
+anno_1 <- system.file("extdata", "ex_anno.csv", package = "glacier")
+data_1 <- system.file("extdata", "ex_data.csv", package = "glacier")
 
 test_that("function 'explore_annotation' supports gene filtering", {
-  anno <- import_annotations(anno_file, ",", F, c(2, 3), 4)
-  data <- import_database(data_file, ",", F, c(2, 3), 4)
-  input <- process_input_text("GENE1 0.1 GENE2 0.2 GENE3 0.3")
+  anno <- import_annotations(anno_1, ",", T, c(2, 4), 5)
+  data <- import_database(data_1, ",", F, c(2, 4), 0)
+  input <- process_input_text("FCN1, FTL")
 
   info <- anno[c("name", "info")]
   anno_proc <- glacier:::process_annotations(anno, info, "file")
   data_proc <- glacier:::process_database(data)
 
   expect_equal(
-    explore_annotation("anno_1", anno_proc$gs_annos,
+    explore_annotation("Carcinogen", anno_proc$gs_annos,
                        data_proc$gs_genes)$genes,
-    c("GENE1", "GENE2", "GENE4")
+    c("FTL", "SOX2", "FCN1")
   )
   expect_equal(
-    explore_annotation("anno_1", anno_proc$gs_annos, data_proc$gs_genes,
-                       "GENE1")$genes,
-    c("GENE1")
+    explore_annotation("Carcinogen", anno_proc$gs_annos, data_proc$gs_genes,
+                       input$gene)$genes,
+    c("FTL", "FCN1")
   )
 })
 
 test_that("function 'compute' does not crash", {
-  anno <- import_annotations(anno_file, ",", F, c(2, 3), 4)
-  data <- import_database(data_file, ",", F, c(2, 3), 4)
-  input <- process_input_text("GENE1 0.1 GENE2 0.2 GENE3 0.3")
+  anno <- import_annotations(anno_1, ",", T, c(2, 4), 5)
+  data <- import_database(data_1, ",", F, c(2, 4), 0)
+  input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 
   expect_error(stats <- compute(input, anno, data), NA)
   expect_error(stats <- compute(input, anno, data, 10000), NA)
@@ -37,9 +37,9 @@ test_that("function 'compute' does not crash", {
 })
 
 test_that("function 'plot_overlap' does not crash", {
-  anno <- import_annotations(anno_file, ",", F, c(2, 3), 4)
-  data <- import_database(data_file, ",", F, c(2, 3), 4)
-  input <- process_input_text("GENE1 0.1 GENE2 0.2 GENE3 0.3")
+  anno <- import_annotations(anno_1, ",", T, c(2, 4), 5)
+  data <- import_database(data_1, ",", F, c(2, 4), 0)
+  input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
   res <- compute(input, anno, data, 10000)
 
   expect_error(plot_overlap(res$matches, "Gene Value", input, res$stats), NA)
@@ -47,9 +47,9 @@ test_that("function 'plot_overlap' does not crash", {
 })
 
 test_that("function 'plot_stats' does not crash", {
-  anno <- import_annotations(anno_file, ",", F, c(2, 3), 4)
-  data <- import_database(data_file, ",", F, c(2, 3), 4)
-  input <- process_input_text("GENE1 0.1 GENE2 0.2 GENE3 0.3")
+  anno <- import_annotations(anno_1, ",", T, c(2, 4), 5)
+  data <- import_database(data_1, ",", F, c(2, 4), 0)
+  input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
   stats <- compute(input, anno, data, 10000)
 
   expect_error(plot_stats(stats$stats, "# genes", "P-value"), NA)

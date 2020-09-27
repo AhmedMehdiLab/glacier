@@ -1,12 +1,5 @@
-CSGE_1,Chronic obstructive pulmonary disease,Asthma,Viral responses,Redox pathways,Cellular metabolism,Iron binding,Apoptosis,Cigarette smoking,Epithelial gene expression,Examined if cigarette smoke extract modulates viral responses by altering HRV-induced epithelial gene expression
-CSGE_2,Cigarette smoking in women,B-cell gene expression,Protein binding,ATP binding,Immune response,Oxygen transport,Phagocytosis,Cigarette smoking,Peripheral circulating B cells gene expression,"Compared the gene expression profiles of peripheral circulating B cells between 39 smoking and 40 non-smoking healthy US white women. A total of 125 differential expressed genes were identified in our study, and 75.2% of them were down-regulated in smoker"
-CSGE_3,Chronic obstructive pulmonary disease,Macrophages,Apoptosis,Phagocytosis,,,,Cigarette smoking,,They collected a list of 14 known apoptotic cell-removal receptor -related genes from literature. 13 apoptotic cell removal receptor genes had no significant differences in relative gene expression among smokers and non-smokers. The expression of only MER
-DGE_1,Plasma insulin level,Leptin level decrease,Ketone bodies level increase,Free fatty acids increase,"Phosphorylation of forkhead protein 1, sirtuin 1 and class Iia histone deacetylase 4",Skeletal muscle gene expression,,,,Genes differentially expressed in human skeletal muscle after 10h and 24h fasting
-DGE_2,Breast cancer,Decreased response of tumors to endocrine therapies,Estrogen-receptor-dependent growth,Liver X receptor metastasis,Tumour associated macrophages,,,,,27-hydroxycholestrol is amodulator of both ER and LXR taregt gene expression in cellular models of Era+ breast cancer cells
-DGE_3,Insulin resistance,Insulin-stimulated glucose metabolism,Type 2 Diabetes,Plasma insulin level,Mitochondrial genes,Proteosome degradation,mRNA processing,,,"Thiazolidinediones induce adipogenesis, insulin-sensitizing and antidiabetic properties. It regulates expression of genes involved in mitochondrial biogeneis, insulin signal transduction, glucose and lipid metabolism."
-IGE_1,Apoptosis,Transcription regulation,Cell cycle,TGF ß signaling,Tolerance,Lm-gp61 infection,,,,DEGs due to  Lm-gp61 infection
-IGE_2,"T cell survival, growth and expansion",Oxidative stress,Anti-apoptotic,,Viral infection,LCMV infection,,,,DEGs due to LCMV infection
-IGE_3,Dendritic cells,HIV-1 p17 matrix protein,Protein synthesis,,Viral infection,HIV-1 infection,,,,Genes up-regulated in plasmacytoid dendritic cells on its activation by HIV-1 infection
-TGE_1,Neurotoxins,Genotoxic carcinogens,Nuclear factor κB,,,,,,,20 categorized chemicals effect on human embryonic stem cell
-TGE_2,Genotoxic,Non-genotoxic,Hepatocarcinogens,Carcinogen,Liver-based in vitro models,,,,,Transcriptomics response to genotoxic and non-genotoxic hepatocarcinogens and non-carcinogens in in-vitro liver models
-TGE_3,Genotoxic,Carcinogen,,,,,,,,DEGs due to benzo[a]pyrene
+Gene Set,Annotation 1,Annotation 2,Annotation 3,Description
+SET_1,Asthma,Viral infection,Cell cycle,Cigarette smoking and viral infections
+SET_2,Insulin release,Leptin level decrease,Apoptosis,Genes up-regulated in pancreatic cancer compared to colon cancer
+SET_3,Apoptosis,Transcription regulation,Cell cycle,Genes down-regulated in viral infections versus bacterial infections
+SET_4,Neurotoxins,Carcinogen,,Genes affected by carcinogens

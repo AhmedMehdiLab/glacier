@@ -29,7 +29,7 @@ gene set descriptions or manual annotations.
 \examples{
 \dontrun{
 anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 info <- anno[c("name", "info")]
 
 anno_proc <- process_annotations(anno, info, "file")

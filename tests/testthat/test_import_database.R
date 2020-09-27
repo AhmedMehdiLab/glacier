@@ -1,84 +1,72 @@
 context("Import database files")
 library(tibble)
 
-dpt_0 <- file.path("files", "blank.csv")
-dpt_1 <- file.path("files", "data_one.csv")
-dpt_2 <- file.path("files", "data_two.csv")
+data_0 <- system.file("extdata", "blank.csv", package = "glacier")
+data_1 <- system.file("extdata", "ex_data.csv", package = "glacier")
 
 test_that("blank databases cannot be imported", {
-  expect_error(suppressWarnings(import_database(dpt_0, ",", F)),
-               "File is empty")
-  expect_error(suppressWarnings(import_database(dpt_0, ",", F, c(1, 2), 3)),
+  expect_error(suppressWarnings(import_database(data_0, ",", F)),
                "File is empty")
 })
 
-test_that("simple databases can be imported", {
-  none <- factor("Not assigned")
+test_that("databases can be imported", {
   expect_equal(
-    import_database(dpt_1, ",", F, c(2, 2), 3),
+    import_database(data_1, ",", F, c(2, 4), 0),
     list(
-      gs_genes = list(SET_1 = "GENE1"),
-      gs_info = tibble(name = "SET_1", info = "INFO1", category = none,
-                       organism = none)
-    )
-  )
-  expect_equal(
-    import_database(dpt_1, ",", F, c(2, 2), 0),
-    list(
-      gs_genes = list(SET_1 = "GENE1"),
-      gs_info = tibble(name = "SET_1", info = "", category = none,
-                       organism = none)
-    )
-  )
-  expect_equal(
-    import_database(dpt_1, ",", F),
-    list(
-      gs_genes = list(SET_1 = c("GENE1", "INFO1")),
-      gs_info = tibble(name = "SET_1", info = "", category = none,
-                       organism = none)
-    )
-  )
-})
-
-test_that("complex databases can be imported", {
-  none <- factor("Not assigned")
-  expect_equal(
-    import_database(dpt_2, ",", F, c(2, 3), 4),
-    list(
-      gs_genes = list(SET_1 = c("GENE1", "GENE2"), SET_2 = "GENE3",
-                      SET_3 = "GENE4"),
+      gs_genes = list(SET_1 = c("FCN1", "FTL", "CLU"),
+                      SET_2 = c("PDK4", "PFKFB3"),
+                      SET_3 = c("Bim", "CLU", "FoxO3a"),
+                      SET_4 = c("FTL", "SOX2", "FCN1")),
       gs_info = tibble(
-        name = c("SET_1", "SET_2", "SET_3"),
-        info = c("INFO1", "INFO2", ""),
-        category = none,
-        organism = none
+        name = c("SET_1", "SET_2", "SET_3", "SET_4"),
+        info = character(4),
+        category = factor("Not assigned"),
+        organism = factor("Not assigned")
       )
     )
   )
   expect_equal(
-    import_database(dpt_2, ",", F, c(2, 3), 0),
+    import_database(data_1, ",", F),
     list(
-      gs_genes = list(SET_1 = c("GENE1", "GENE2"), SET_2 = "GENE3",
-                      SET_3 = "GENE4"),
+      gs_genes = list(SET_1 = c("FCN1", "FTL", "CLU"),
+                      SET_2 = c("PDK4", "PFKFB3"),
+                      SET_3 = c("Bim", "CLU", "FoxO3a"),
+                      SET_4 = c("FTL", "SOX2", "FCN1")),
       gs_info = tibble(
-        name = c("SET_1", "SET_2", "SET_3"),
-        info = c("", "", ""),
-        category = none,
-        organism = none
+        name = c("SET_1", "SET_2", "SET_3", "SET_4"),
+        info = character(4),
+        category = factor("Not assigned"),
+        organism = factor("Not assigned")
       )
     )
   )
   expect_equal(
-    import_database(dpt_2, ",", F),
+    import_database(data_1, ",", F, c(2, 4), 1),
     list(
-      gs_genes = list(SET_1 = c("GENE1", "GENE2", "INFO1"),
-                      SET_2 = c("GENE3", "INFO2"),
-                      SET_3 = "GENE4"),
+      gs_genes = list(SET_1 = c("FCN1", "FTL", "CLU"),
+                      SET_2 = c("PDK4", "PFKFB3"),
+                      SET_3 = c("Bim", "CLU", "FoxO3a"),
+                      SET_4 = c("FTL", "SOX2", "FCN1")),
       gs_info = tibble(
-        name = c("SET_1", "SET_2", "SET_3"),
-        info = c("", "", ""),
-        category = none,
-        organism = none
+        name = c("SET_1", "SET_2", "SET_3", "SET_4"),
+        info = c("SET_1", "SET_2", "SET_3", "SET_4"),
+        category = factor("Not assigned"),
+        organism = factor("Not assigned")
+      )
+    )
+  )
+  expect_equal(
+    import_database(data_1, ",", F, c(2, 3), 0),
+    list(
+      gs_genes = list(SET_1 = c("FCN1", "FTL"),
+                      SET_2 = c("PDK4", "PFKFB3"),
+                      SET_3 = c("Bim", "CLU"),
+                      SET_4 = c("FTL", "SOX2")),
+      gs_info = tibble(
+        name = c("SET_1", "SET_2", "SET_3", "SET_4"),
+        info = character(1),
+        category = factor("Not assigned"),
+        organism = factor("Not assigned")
       )
     )
   )

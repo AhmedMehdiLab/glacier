@@ -11,19 +11,19 @@ inputPane <- tagList(
 
 homePane <- tabPanel(
   NULL, br(), icon = icon("home", lib = "glyphicon"),
-  selectInput("anno.source", "Annotations", NULL),
+  selectInput("anno.source", "Annotations", c("No annotations" = "")),
   selectInput("anno.types", NULL, c("Gene Sets" = "name", "Symbols" = "syms", "Descriptions" = "info", "Automatic" = "auto", "Manual" = "file"), selected = "file", multiple = T),
   textInput("anno.regex", NULL, placeholder = "Filter using regular expressions"),
   verbatimTextOutput("anno.count", T),
   
-  selectInput("data.source", "Database", NULL),
-  selectInput("data.categories", NULL, NULL, multiple = T),
-  selectInput("data.organisms", NULL, NULL, multiple = T),
+  selectInput("data.source", "Database", c("No databases" = "")),
+  selectInput("data.categories", NULL, c("Filter categories" = ""), multiple = T),
+  selectInput("data.organisms", NULL, c("Filter organisms" = ""), multiple = T),
   verbatimTextOutput("data.count", T),
   
-  selectInput("cell.source", "Seurat data", NULL),
-  selectInput("cell.select", NULL, NULL),
-  selectInput("cell.compare", NULL, NULL),
+  selectInput("cell.source", "Seurat data", c("No Seurat data" = "")),
+  selectInput("cell.select", NULL, c("No clusters" = "")),
+  selectInput("cell.compare", NULL, c("No clusters" = "")),
   verbatimTextOutput("cell.count", T)
 )
 
@@ -32,8 +32,8 @@ etcPane <- tabPanel(
   radioButtons("info.source", "Description source", c("Annotations" = "anno", "Database" = "data"), inline = T),
   checkboxInput("name.fix", "Remove underscores from gene set names", T), hr(),
   
-  varSelectInput("info.columns", "Information", NULL, multiple = T),
-  varSelectInput("stat.columns", "Statistics", NULL, multiple = T), hr(),
+  varSelectizeInput("info.columns", "Information", NULL, multiple = T, options = list(placeholder = "Select columns to display")),
+  varSelectizeInput("stat.columns", "Statistics", NULL, multiple = T, options = list(placeholder = "Select columns to display")), hr(),
   
   fileInput("file.up", NULL, buttonLabel = "Upload..."),
   downloadButton("file.down", "Download", class = "wide"),
@@ -64,12 +64,12 @@ overPane <- tabPanel(
 
 cellPane <- tabPanel(
   NULL, br(), icon = icon("screenshot", lib = "glyphicon"),
-  selectInput("cell.overview", "Overview plot", NULL),
+  selectInput("cell.overview", "Overview plot", c("No Seurat data selected" = "")),
   numericInput("cell.downsample", "Downsample", 50, 3), hr(),
   
   selectInput("cell.plot", "Expression plot", c("Dot Plot" = "dot", "Feature Plot" = "feat", "Heatmap" = "heat", "Ridge Plot" = "ridge", "Violin Plot" = "violin"), "feat"),
-  selectInput("cell.anno", "Annotation", NULL),
-  selectInput("cell.genes", "Genes", NULL, multiple = T),
+  selectInput("cell.anno", "Annotation", c("No annotations loaded" = "")),
+  selectInput("cell.genes", "Genes", c("Select genes to display" = ""), multiple = T),
   checkboxInput("cell.gene.match", "Restrict to genes in input", T),
   checkboxInput("cell.gene.cluster", "Cluster genes based on expression")
 )

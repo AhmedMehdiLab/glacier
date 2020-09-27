@@ -22,8 +22,8 @@ Process tibble of file contents
 \examples{
 \dontrun{
 path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-file <- import_delim_path(path, ",", FALSE)
-data <- import_delim_file(file, c(2, 10), 11)
+file <- import_delim_path(path, ",", TRUE)
+data <- import_delim_file(file, c(2, 4), 5)
 }
 }
 \keyword{internal}

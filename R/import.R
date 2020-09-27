@@ -9,7 +9,7 @@
 #'
 #' @examples \dontrun{
 #' path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' file <- import_delim_path(path, ",", FALSE)
+#' file <- import_delim_path(path, ",", TRUE)
 #' }
 import_delim_path <- function(path, delim, header) {
   type <- readr::cols(.default = readr::col_character())
@@ -32,8 +32,8 @@ import_delim_path <- function(path, delim, header) {
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
 #' path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' file <- import_delim_path(path, ",", FALSE)
-#' data <- import_delim_file(file, c(2, 10), 11)
+#' file <- import_delim_path(path, ",", TRUE)
+#' data <- import_delim_file(file, c(2, 4), 5)
 #' }
 import_delim_file <- function(file, content, info) {
   if (is.null(content)) lhs <- rhs <- 0
@@ -70,8 +70,8 @@ import_delim_file <- function(file, content, info) {
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
 #' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' anno_file <- import_delim_path(anno_path, ",", FALSE)
-#' anno <- import_annotations_file(anno_file, c(2, 10), 11)
+#' anno_file <- import_delim_path(anno_path, ",", TRUE)
+#' anno <- import_annotations_file(anno_file, c(2, 4), 5)
 #' }
 import_annotations_file <- function(anno_file, content, info) {
   anno_file %>%
@@ -93,7 +93,7 @@ import_annotations_file <- function(anno_file, content, info) {
 #' @importFrom magrittr %>%
 #' @examples
 #' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+#' anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 import_annotations <- function(path, delim, header,
                                content = NULL, info = NULL) {
   path %>%

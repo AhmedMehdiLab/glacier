@@ -22,7 +22,7 @@ Read delimited files into tibble
 \examples{
 \dontrun{
 path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-file <- import_delim_path(path, ",", FALSE)
+file <- import_delim_path(path, ",", TRUE)
 }
 }
 \keyword{internal}

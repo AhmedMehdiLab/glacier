@@ -22,8 +22,8 @@ Process tibble of annotation file contents
 \examples{
 \dontrun{
 anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-anno_file <- import_delim_path(anno_path, ",", FALSE)
-anno <- import_annotations_file(anno_file, c(2, 10), 11)
+anno_file <- import_delim_path(anno_path, ",", TRUE)
+anno <- import_annotations_file(anno_file, c(2, 4), 5)
 }
 }
 \keyword{internal}

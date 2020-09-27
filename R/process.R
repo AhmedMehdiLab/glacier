@@ -28,7 +28,7 @@ form_rhs <- stringr::str_glue("(?:{split_2})(.*?)\\.?$")
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
 #' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+#' anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 #' info <- anno[c("name", "info")]
 #'
 #' anno_proc <- process_annotations(anno, info, "file")
@@ -46,7 +46,7 @@ process_annotations <- function(anno, info, options) {
   if ("info" %in% options) anno_proc$anno_info <- info
   if ("auto" %in% options) anno_proc$anno_auto <-
     ifelse(
-      stringr::str_detect(anno_proc$name, "_UP"),
+      stringr::str_detect(info, "up-regulated"),
       stringr::str_match(info, form_lhs)[, 2],
       stringr::str_match(info, form_rhs)[, 2]
     )
@@ -115,8 +115,8 @@ process_database <- function(data, categories = FALSE, organisms = FALSE) {
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
 #' @examples
-#' input <- process_input_text('CYP1A1 CYP1B1 NQO1 SODD')
-#' input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' input <- process_input_text("FCN1 FTL CLU")
+#' input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 process_input_text <- function(text) {
   tokens <- text %>%
     stringr::str_split("[ \t\r\n,;]") %>%
@@ -150,10 +150,11 @@ process_input_text <- function(text) {
 #'
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
-#' @examples \dontrun{
-#' seu <- readRDS("path/to/seurat.rds")
-#' input <- process_input_seurat(seu, 1)
-#' }
+#' @examples
+#' seu_path <- system.file("extdata", "ex_seurat.rds", package = "glacier")
+#' seurat <- readRDS(seu_path)
+#'
+#' input <- process_input_seurat(seurat, 0)
 process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
   if (!requireNamespace("Seurat", quietly = T))
     stop("Package 'Seurat' is required for this feature")
@@ -184,11 +185,11 @@ process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
 #' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
 #' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 #' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
-#'
 #' info <- anno[c("name", "info")]
+#'
 #' anno_proc <- process_annotations(anno, info, "file")
 #' data_proc <- process_database(data, "Not assigned", "Not assigned")
 #' anno_assoc <- explore_annotation("Carcinogen", anno_proc$gs_annos,
@@ -221,15 +222,14 @@ explore_annotation <- function(annotation, gs_annos, gs_genes, genes = NULL) {
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
 #' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
 #' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 #' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
-#'
 #' info <- anno[c("name", "info")]
+#'
 #' anno_proc <- process_annotations(anno, info, "file")
 #' data_proc <- process_database(data, "Not assigned", "Not assigned")
-#'
-#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 #' calc_pre <- calculate_pre(input, anno_proc$annos, anno_proc$gs_annos,
 #'                           data_proc$gs_genes)
 #' }
@@ -268,15 +268,14 @@ calculate_pre <- function(input, annos, gs_annos, gs_genes) {
 #' @importFrom rlang .data
 #' @examples \dontrun{
 #' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
 #' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 #' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
-#'
 #' info <- anno[c("name", "info")]
+#'
 #' anno_proc <- process_annotations(anno, info, "file")
 #' data_proc <- process_database(data, "Not assigned", "Not assigned")
-#'
-#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 #' calc_pre <- calculate_pre(input, anno_proc$annos, anno_proc$gs_annos,
 #'                           data_proc$gs_genes)
 #' calc <- calculate_post(calc_pre$stats_pre, nrow(input), 10000)
@@ -336,23 +335,23 @@ calculate_post <- function(stats_pre, input_size, universe) {
 #' @importFrom magrittr %>%
 #' @examples \dontrun{
 #' anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
-#' anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
 #' data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+#' anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 #' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
-#'
 #' info <- anno[c("name", "info")]
+#'
 #' anno_proc <- process_annotations(anno, info, "file")
 #' data_proc <- process_database(data, "Not assigned", "Not assigned")
-#'
-#' input <- process_input('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 #' calc <- calculate(input, anno_proc$annos, anno_proc$gs_annos,
-#'                   data_proc$gs_genes, 10000)
+#'                   data_proc$gs_genes)
 #' }
 calculate <- function(input, annos, gs_annos, gs_genes, universe) {
-  if (is.null(universe)) {
-    genes <- gs_genes %>% unlist(use.names = F) %>% unique()
-    universe <- max(nrow(input), length(genes[!is.na(genes) & genes != ""]))
-  }
+  if (is.null(universe)) universe <- gs_genes %>%
+      unlist(use.names = F) %>%
+      c(input$gene) %>%
+      unique() %>%
+      length()
 
   calc_pre <- calculate_pre(input, annos, gs_annos, gs_genes)
   calc <- calculate_post(calc_pre$stats_pre, nrow(input), universe)

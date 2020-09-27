@@ -4,12 +4,14 @@ library(shinyWidgets)
 
 library(dplyr)
 library(magrittr)
+library(readr)
 library(stringr)
 library(tools)
 
 source("upload.R")
 
 # options
+LOAD_EXAMPLES <- TRUE
 BARS_ANNO_MAX <- 80
 OVER_ANNO_MAX <- 80
 OVER_GENE_MAX <- 100
@@ -20,6 +22,12 @@ options(shiny.maxRequestSize = 5 * 1024 ^ 3)
 
 server <- function(input, output, session) {
   store <- reactiveValues(anno = list(), cell = list(), data = list(), proc = reactiveValues())
+  
+  if (LOAD_EXAMPLES) isolate({
+    store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
+    store$data$Example <- import_database(system.file("extdata", "ex_data.csv", package = "glacier"), ",", FALSE, c(2, 4), 0)
+    store$cell$Example <- readRDS(system.file("extdata", "ex_seurat.rds", package = "glacier"))
+  })
   
   # process upload
   observeEvent(input$file.up, showModal(uploadUI("file")))
@@ -42,7 +50,7 @@ server <- function(input, output, session) {
   cell_raw <- reactive(if (requireNamespace("Seurat", quietly = T)) store$cell[[req(input$cell.source)]])
   data_raw <- reactive(store$data[[req(input$data.source)]])
   info_raw <- reactive(if (input$info.source == "anno") anno_raw() else data_raw()$gs_info)
-  universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% unique %>% length %>% max(nrow(input_proc())))
+  universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% c(input_proc()$gene) %>% unique %>% length)
   
   clusts <- reactive(levels(cell_raw()))
   info <- reactive(info_raw() %>% select("name", "info"))
@@ -102,7 +110,7 @@ server <- function(input, output, session) {
   # compute data
   matches <- reactive(calc_pre()$matches)
   calc_pre <- reactive(glacier:::calculate_pre(input_proc(), anno_list(), anno_proc()$gs_annos, data_proc()$gs_genes))
-  calc_post <- reactive(glacier:::calculate_post(calc_pre()$stats_pre, nrow(input_proc()), input$input.universe))
+  calc_post <- reactive(glacier:::calculate_post(calc_pre()$stats_pre, nrow(input_proc()), max(input$input.universe, universe())))
   
   bars_stat <- reactive(calc_post() %>% arrange(if (input$bars.anno.order == "Annotation") str_to_lower(Annotation) else desc(.data[[input$bars.anno.order]])))
   over_stat <- reactive(calc_post() %>% arrange(if (input$over.anno.order == "Annotation") str_to_lower(Annotation) else desc(.data[[input$over.anno.order]])))
