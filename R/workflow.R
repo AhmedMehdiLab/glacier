@@ -55,13 +55,15 @@ webstart <- function() {
       !requireNamespace("shinyjs", quietly = F) ||
       !requireNamespace("shinythemes", quietly = F) ||
       !requireNamespace("shinyWidgets", quietly = F))
-    stop("Libraries 'shiny', 'shinyjs', 'shinythemes' and 'shinyWidgets' are \
+    stop("Packages 'shiny', 'shinyjs', 'shinythemes' and 'shinyWidgets' are \
          required for this feature")
 
-  if (!requireNamespace("Seurat", quietly = F) ||
-      !requireNamespace("limma", quietly = F))
-    warning("Libraries 'Seurat' and (Bioconductor) 'limma' are required for \
-            some features")
+  if (!requireNamespace("Seurat", quietly = F))
+    warning("Package 'Seurat' is required for single-cell analysis")
+
+  if (!requireNamespace("limma", quietly = F))
+    message("Package 'limma' from Bioconductor is recommended to accelerate \
+            single-cell analysis")
 
   shiny::runApp(system.file("shiny", package = "glacier"), launch.browser = T)
 }

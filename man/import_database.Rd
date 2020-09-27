@@ -13,9 +13,9 @@ import_database(path, delim, header, content = NULL, info = NULL)
 
 \item{header}{whether file contains header}
 
-\item{content}{vector: first and last column of content}
+\item{content}{vector: first and last column of content; default 2 to end}
 
-\item{info}{column containing information}
+\item{info}{column containing information; default none}
 }
 \value{
 glacier-specific imported database

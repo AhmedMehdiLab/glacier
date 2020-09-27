@@ -23,8 +23,8 @@ import_delim_path <- function(path, delim, header) {
 #' Process tibble of file contents
 #'
 #' @param file output of \code{\link{import_delim_path}}
-#' @param content vector: first and last column of content
-#' @param info column containing information
+#' @param content vector: first and last column of content; default 2 to end
+#' @param info column containing information; default none
 #'
 #' @return tibble: renamed and cleaned file contents
 #' @keywords internal
@@ -61,8 +61,8 @@ import_delim_file <- function(file, content, info) {
 #' Process tibble of annotation file contents
 #'
 #' @param anno_file output of \code{\link{import_delim_path}}
-#' @param content vector: first and last column of content
-#' @param info column containing information
+#' @param content vector: first and last column of content; default 2 to end
+#' @param info column containing information; default none
 #'
 #' @return glacier-specific imported annotations
 #' @keywords internal
@@ -84,8 +84,8 @@ import_annotations_file <- function(anno_file, content, info) {
 #' @param path path to file
 #' @param delim file delimiter, usually \code{","} or \code{"\\t"}
 #' @param header whether file contains header
-#' @param content vector: first and last column of content
-#' @param info column containing information
+#' @param content vector: first and last column of content; default 2 to end
+#' @param info column containing information; default none
 #'
 #' @return glacier-specific imported annotations
 #' @export
@@ -140,8 +140,8 @@ import_msigdb <- function(path) {
 #' Process tibble of database file contents
 #'
 #' @param data_file output of \code{\link{import_delim_path}}
-#' @param content vector: first and last column of content
-#' @param info column containing information
+#' @param content vector: first and last column of content; default 2 to end
+#' @param info column containing information; default none
 #'
 #' @return glacier-specific imported database
 #' @keywords internal
@@ -174,8 +174,8 @@ import_database_file <- function(data_file, content, info) {
 #' @param path path to file
 #' @param delim file delimiter, usually \code{","} or \code{"\\t"}
 #' @param header whether file contains header
-#' @param content vector: first and last column of content
-#' @param info column containing information
+#' @param content vector: first and last column of content; default 2 to end
+#' @param info column containing information; default none
 #'
 #' @return glacier-specific imported database
 #' @export

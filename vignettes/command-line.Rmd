@@ -1,0 +1,122 @@
+---
+title: "Command-line usage"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Command-line usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(glacier)
+```
+
+## Introduction
+This is a tutorial on how to use the functions contained in the package in the
+context of an interactive R session. The use of all exported functions will be
+demonstrated, but additional functionality can be explored by browsing the
+package documentation.
+
+## Annotations
+```{r}
+anno_path <- system.file("extdata", "ex_anno.csv", package = "glacier")
+```
+Annotations must first be imported from annotation files. Annotation files
+contain the gene set name, followed by a list of annotations, and finally an
+optional description. Below is an example of an annotation file.
+
+```{r echo = FALSE}
+knitr::kable(read.csv(anno_path, header = F), "pipe")
+```
+
+Annotations can thus be imported:
+
+```{r}
+anno <- import_annotations(anno_path, ",", FALSE, c(2, 10), 11)
+```
+
+## Databases
+```{r}
+data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
+```
+
+Databases must also be imported from database files. Database files contain the
+gene set name, followed by a list of genes, and finally an optional description.
+Below is an example of a database file.
+
+```{r echo = FALSE}
+knitr::kable(read.csv(data_path, header = F), "pipe")
+```
+
+Databases can thus be imported:
+
+```{r}
+data <- import_database(data_path, ",", F)
+```
+
+Databases in the Molecular Signatures Database (MSigDB) XML format can also be
+imported. These databases will allow filtering of categories and organisms later
+on. For example:
+
+```{r eval = FALSE}
+msig <- import_msigdb("path/to/msigdb.xml")
+```
+
+## Genes
+Genes and gene values can be imported from the console. For example:
+
+```{r}
+gene_only <- process_input_text("CYP1A1 CYP1B1 NQO1 HBA1 MERTK")
+```
+
+Gene values can also be placed alongside gene names. However, these values will
+only be used when creating the overlap heatmap, and will not be used in the
+calculation of overlap statistics. For example:
+
+```{r}
+gene_vals <- process_input_text("CYP1A1 .2 CYP1B1 .4 NQO1 1 HBA1 .6 MERTK .3")
+```
+
+Gene values can also be imported from Seurat objects. At least one cluster of
+interest must be specified. For example:
+
+```{r eval = FALSE}
+gene_seurat <- process_input_seurat(seurat_obj, "cluster 1")
+```
+
+## Computation
+Overlap statistics can then be calculated. For example:
+
+```{r}
+stats <- compute(gene_only, anno, data)
+```
+
+Upon completion, a list of annotation-gene matches, along with the overlap
+statistics will be returned. The following is an example of the overlap
+statistics:
+
+```{r echo = FALSE}
+knitr::kable(stats$stats, "pipe")
+```
+
+## Plot statistics
+The results of the overlap calculation can then be plotted:
+
+```{r fig.height = 8, fig.width = 7}
+plot_stats(stats$stats, "Fold Enrichment", "Adjusted P-value")
+```
+
+## Plot overlap
+The list of annotation-gene matches can also be plotted. Here, the gene values
+from the input above are used for coloring the boxes:
+
+```{r fig.height = 8, fig.width = 7}
+plot_overlap(stats$matches, "Gene Value", gene_vals, stats$stats)
+```

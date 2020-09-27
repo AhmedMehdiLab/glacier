@@ -10,7 +10,6 @@ library(tools)
 source("upload.R")
 
 # options
-. <- NULL
 BARS_ANNO_MAX <- 80
 OVER_ANNO_MAX <- 80
 OVER_GENE_MAX <- 100

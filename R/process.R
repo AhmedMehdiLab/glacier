@@ -156,7 +156,7 @@ process_input_text <- function(text) {
 #' }
 process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
   if (!requireNamespace("Seurat", quietly = T))
-    stop("Library 'Seurat' is required for this feature")
+    stop("Package 'Seurat' is required for this feature")
   if (!is.null(clst_2) && clst_1 == clst_2)
     return(tibble::tibble(gene = character(), value = numeric()))
 
