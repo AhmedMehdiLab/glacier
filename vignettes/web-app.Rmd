@@ -160,6 +160,8 @@ plot can show a "Dot Plot", "Feature Plot", "Heatmap", "Ridge Plot" or "Violin
 Plot". Users can select which genes to visualize, based on the annotation
 selected. There is an option to restrict the gene list to those entered as
 input, along with an option to cluster the genes based on their expression.
+"Empty" annotations with no genes matching the criteria are omitted from the
+annotation selection.
 
 \newpage
 
