@@ -65,3 +65,10 @@ found in `vignette("web-app", package = "glacier")`.
 
 As an alternative, an instance is hosted online at
 [shinyapps.io](https://lilin-yang.shinyapps.io/glacier/).
+
+Acknowledgements
+----------------
+
+This package was inspired by, and extends the functionality of the [GSEA
+Compute Overlaps
+tool](https://www.gsea-msigdb.org/gsea/msigdb/annotate.jsp).
