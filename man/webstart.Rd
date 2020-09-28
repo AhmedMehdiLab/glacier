@@ -2,10 +2,13 @@
 % Please edit documentation in R/workflow.R
 \name{webstart}
 \alias{webstart}
-\title{Start web application}
+\title{Launch web interface}
 \usage{
 webstart()
 }
 \description{
-Start web application
+Launch web interface
+}
+\examples{
+vignette("web-app", package = "glacier")
 }

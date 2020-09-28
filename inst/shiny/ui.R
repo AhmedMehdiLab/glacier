@@ -88,7 +88,7 @@ infoView <- tabPanel("Information", icon = icon("info-sign", lib = "glyphicon"),
 
 ui <- fluidPage(
   theme = shinytheme("yeti"), useShinyjs(),
-  titlePanel("GLACIER: Gene List Annotation, Calculation and Illustration of Enrichment in R"),
+  titlePanel("glacier: Gene List Annotation, Calculation and Illustration of Enrichment in R"),
   sidebarLayout(
     sidebarPanel(fluidRow(column(6, inputPane), column(6, tabsetPanel(type = "pills", homePane, etcPane, barsPane, overPane, cellPane)))),
     mainPanel(tabsetPanel(barsView, overView, cellView, heatView, statView, geneView, gsetView, valsView, infoView))

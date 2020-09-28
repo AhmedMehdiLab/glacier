@@ -47,9 +47,12 @@ compute <- function(input, anno, data, universe = NULL, info_from = "database",
   return(calc)
 }
 
-#' Start web application
+#' Launch web interface
 #'
 #' @export
+#'
+#' @examples
+#' vignette("web-app", package = "glacier")
 webstart <- function() {
   if (!requireNamespace("shiny", quietly = F) ||
       !requireNamespace("shinyjs", quietly = F) ||

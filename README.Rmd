@@ -64,5 +64,9 @@ An example of these functions in action can be seen in
 
 ## Web application
 
-A web interface for those less familiar with R is also provided. It can be
-started with `webstart()`.
+A web interface for those less familiar with R is also provided, and can be
+started with `webstart()`. A guide to using the web interface can be found in
+`vignette("web-app", package = "glacier")`.
+
+As an alternative, an instance is hosted online at
+[shinyapps.io](https://lilin-yang.shinyapps.io/glacier/).

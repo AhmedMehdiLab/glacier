@@ -1,8 +1,10 @@
 ---
-title: "Command-line usage"
+title: "The `glacier` Console Interface"
+author: "Lilin Yang"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{console}
+  %\VignetteIndexEntry{The `glacier` Console Interface}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,19 +16,15 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Introduction
 ```{r setup}
 library(glacier)
 ```
 
-```{r echo = FALSE}
-options(rmarkdown.html_vignette.check_title = FALSE)
-```
-
-## Introduction
-This is a tutorial on how to use the functions contained in the package in the
-context of an interactive R session. The use of all exported functions will be
-demonstrated, but additional functionality can be explored by browsing the
-package documentation.
+This is a tutorial on how to use the functions contained in the `glacier`
+package in the context of an interactive R session. The use of all exported
+functions will be demonstrated, but additional functionality can be explored by
+browsing the package documentation.
 
 ## Annotations
 ```{r}
@@ -38,7 +36,7 @@ optional description. Below is an example of an annotation file, notice that it
 contains a header and a description:
 
 ```{r echo = FALSE}
-knitr::kable(read.csv(anno_path, header = T), "pipe")
+knitr::kable(read.csv(anno_path, header = TRUE), "pipe")
 ```
 
 Annotations can thus be imported:
@@ -59,13 +57,13 @@ Below is an example of a database file, notice that it contains neither a header
 nor a description:
 
 ```{r echo = FALSE}
-knitr::kable(read.csv(data_path, header = F), "pipe")
+knitr::kable(read.csv(data_path, header = FALSE), "pipe")
 ```
 
 Databases can thus be imported:
 
 ```{r}
-data <- import_database(data_path, ",", F)
+data <- import_database(data_path, ",", FALSE)
 ```
 
 Databases in the Molecular Signatures Database (MSigDB) XML format can also be

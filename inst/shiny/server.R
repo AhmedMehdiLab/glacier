@@ -2,6 +2,8 @@ library(shiny)
 library(shinyjs)
 library(shinyWidgets)
 
+library(glacier)
+
 library(dplyr)
 library(magrittr)
 library(purrr)
@@ -24,6 +26,7 @@ options(shiny.maxRequestSize = 5 * 1024 ^ 3)
 
 server <- function(input, output, session) {
   store <- reactiveValues(anno = list(), cell = list(), data = list(), proc = reactiveValues())
+  showNotification(str_c("Welcome to glacier (v", packageVersion("glacier"), ")!", collapse = ""), type = "message")
   
   if (LOAD_EXAMPLES) isolate({
     store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
