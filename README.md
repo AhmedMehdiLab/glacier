@@ -53,8 +53,8 @@ glacier has three main types of functions:
 -   The `plot_statistics()` and `plot_overlap()` functions display the
     calculated statistics in a graph.
 
-An example of these functions in action can be seen in
-`vignette("console", package = "glacier")`.
+An example of these functions in action, as well as the supported input
+formats, can be seen in `vignette("console", package = "glacier")`.
 
 Web application
 ---------------
