@@ -11,7 +11,7 @@ output:
     toc: true
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{The glacier Web Interface}
+  %\VignetteIndexEntry{The `glacier` Web Interface}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
