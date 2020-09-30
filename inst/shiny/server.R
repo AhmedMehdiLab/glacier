@@ -11,6 +11,11 @@ library(readr)
 library(stringr)
 library(tools)
 
+# if pushing to shinyapps.io
+# devtools::install_github("lilin-yang/glacier")
+# library(limma)
+# library(Seurat)
+
 source("upload.R")
 
 # options
@@ -30,6 +35,10 @@ server <- function(input, output, session) {
   showNotification(str_c("Welcome to glacier (v", packageVersion("glacier"), ")!", collapse = ""), type = "message")
   
   if (LOAD_EXAMPLES) isolate({
+    # if pushing to shinyapps.io
+    # store$anno$GEPART <- readRDS("gepart_a.rds")
+    # store$data$GEPART <- readRDS("gepart_d.rds")
+    
     store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
     store$data$Example <- import_database(system.file("extdata", "ex_data.csv", package = "glacier"), ",", FALSE, c(2, 4), 0)
     store$cell$Example <- readRDS(system.file("extdata", "ex_seurat.rds", package = "glacier"))
