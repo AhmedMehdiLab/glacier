@@ -1,4 +1,8 @@
 # glacier (development)
+## glacier 0.12.3
+* Make input statistics more descriptive
+* Documentation updates
+
 ## glacier 0.12.2
 * Attempt to fix slider bouncing issue
 * Make single-cell annotation selection easier to use

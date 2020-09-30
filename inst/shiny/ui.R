@@ -74,16 +74,16 @@ cellPane <- tabPanel(
   checkboxInput("cell.gene.cluster", "Cluster genes based on expression")
 )
 
-oneColumn <- function(head, body) column(6, h5(head), wellPanel(textOutput(body), class = "text-compare"))
-twoColumn <- function(l_head, l_body, r_head, r_body) fluidRow(oneColumn(l_head, l_body), oneColumn(r_head, r_body))
+twoTable <- function(left, right) fluidRow(column(6, dataTableOutput(left)), column(6, dataTableOutput(right)))
 barsView <- tabPanel("Plot", icon = icon("stats", lib = "glyphicon"), plotOutput("bars", height = "calc(100vh - 132.5px)"))
 overView <- tabPanel("Overlap", icon = icon("equalizer", lib = "glyphicon"), plotOutput("over", height = "calc(100vh - 132.5px)"))
 cellView <- tabPanel("Cluster", icon = icon("screenshot", lib = "glyphicon"), plotOutput("cell", height = "calc(100vh - 132.5px)"))
 heatView <- tabPanel("Expression", icon = icon("fire", lib = "glyphicon"), plotOutput("heat", height = "calc(100vh - 132.5px)"))
 statView <- tabPanel("Statistics", icon = icon("th", lib = "glyphicon"), dataTableOutput("stat"))
-geneView <- tabPanel("Gene List", icon = icon("ok-circle", lib = "glyphicon"), twoColumn("Recognised", "gene.ok", "Not recognised", "gene.no"))
-gsetView <- tabPanel("Gene Sets", icon = icon("list", lib = "glyphicon"), twoColumn("Gene sets not in annotations", "data.only", "Gene sets not in annotations", "anno.only"))
-valsView <- tabPanel("Gene Values", icon = icon("tasks", lib = "glyphicon"), twoColumn("Genes with values", "vals.ok", "Genes without values", "vals.no"))
+contView <- tabPanel("Contents", icon = icon("book", lib = "glyphicon"), twoTable("data.gene", "cell.gene"))
+geneView <- tabPanel("Recognised", icon = icon("ok", lib = "glyphicon"), twoTable("gene.ok", "gene.no"))
+gsetView <- tabPanel("Mismatched", icon = icon("remove", lib = "glyphicon"), twoTable("data.only", "anno.only"))
+valsView <- tabPanel("Gene Values", icon = icon("tasks", lib = "glyphicon"), twoTable("vals.ok", "vals.no"))
 infoView <- tabPanel("Information", icon = icon("info-sign", lib = "glyphicon"), dataTableOutput("info"))
 
 ui <- fluidPage(
@@ -91,7 +91,7 @@ ui <- fluidPage(
   titlePanel("glacier: Gene List Annotation, Calculation and Illustration of Enrichment in R"),
   sidebarLayout(
     sidebarPanel(fluidRow(column(6, inputPane), column(6, tabsetPanel(type = "pills", homePane, etcPane, barsPane, overPane, cellPane)))),
-    mainPanel(tabsetPanel(barsView, overView, cellView, heatView, statView, geneView, gsetView, valsView, infoView))
+    mainPanel(tabsetPanel(barsView, overView, cellView, heatView, statView, contView, geneView, gsetView, valsView, infoView))
   ),
   tags$head(tags$style(".text-compare {height: calc(100vh - 170px); overflow-y: auto;}"))
 )

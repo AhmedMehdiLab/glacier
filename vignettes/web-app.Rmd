@@ -180,11 +180,15 @@ In the **main panel**, users can select which outputs to view:
 * **Overlap** displays the gene-annotation overlap plot.
 * **Cluster** displays the overview plot for the Seurat data, if available.
 * **Expression** displays the Seurat gene expression plot.
-* **Statistics** displays the calculated statistics.
-* **Gene List** splits genes from the input into two lists based on whether they
-were found in the database.
-* **Gene Sets** displays which gene sets from the annotation file were not found
-in the database file, and vice-versa.
+* **Statistics** displays the calculated statistics. Note that this table can be
+configured to show a list of all annotations by deselecting all other columns in
+the **advanced pane**.
+* **Contents** displays the list of all genes from the database and Seurat files
+respectively.
+* **Recognised** splits genes from the input into two lists based on whether
+they were found in the database.
+* **Mismatched** displays which gene sets from the annotation file were not
+found in the database file, and vice-versa.
 * **Gene Values** splits genes from the input into two lists based on whether
 they were assigned values.
 * **Information** displays information about gene sets, and is only useful if

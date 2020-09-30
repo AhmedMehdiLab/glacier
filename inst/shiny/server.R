@@ -20,7 +20,8 @@ OVER_ANNO_MAX <- 80
 OVER_GENE_MAX <- 100
 DEBOUNCE_TIME <- 1000
 
-DT_OPTS <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 235px)")
+LARGE_DT <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 235px)")
+SMALL_DT <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 220.3px)")
 DIM_RED <- c("Principal component analysis" = "pca", "Independent component analysis" = "ica", "t-distributed Stochastic Neighbor Embedding" = "tsne", "Uniform Manifold Approximation and Projection" = "umap")
 options(shiny.maxRequestSize = 5 * 1024 ^ 3)
 
@@ -100,12 +101,14 @@ server <- function(input, output, session) {
   output$data.count <- renderText(str_c(length(data_sets()), " gene sets loaded\n", length(data_list()), " unique genes"))
   output$input.count <- renderText(str_c(nrow(input_proc()), " unique genes\n", length(gene_ok()), " genes recognised\n", length(vals_ok()), " values entered"))
   
-  output$anno.only <- renderText(str_c(anno_only(), collapse = ", "))
-  output$data.only <- renderText(str_c(data_only(), collapse = ", "))
-  output$gene.ok <- renderText(str_c(gene_ok(), collapse = ", "))
-  output$gene.no <- renderText(str_c(gene_no(), collapse = ", "))
-  output$vals.ok <- renderText(str_c(vals_ok(), collapse = ", "))
-  output$vals.no <- renderText(str_c(vals_no(), collapse = ", "))
+  output$cell.gene <- renderDataTable(tibble(`Genes in Seurat file` = rownames(cell_raw())), SMALL_DT)
+  output$data.gene <- renderDataTable(tibble(`Genes in database` = data_list()), SMALL_DT)
+  output$anno.only <- renderDataTable(tibble(`Gene sets only in annotations` = anno_only()), SMALL_DT)
+  output$data.only <- renderDataTable(tibble(`Gene sets only in database` = data_only()), SMALL_DT)
+  output$gene.ok <- renderDataTable(tibble(`Genes recognised` = gene_ok()), SMALL_DT)
+  output$gene.no <- renderDataTable(tibble(`Genes not recognised` = gene_no()), SMALL_DT)
+  output$vals.ok <- renderDataTable(tibble(`Genes with values` = vals_ok()), SMALL_DT)
+  output$vals.no <- renderDataTable(tibble(`Genes without values` = vals_no()), SMALL_DT)
   
   # actions
   observe(updateSelectInput(session, "cell.anno", NULL, names(cell_anno_list())))
@@ -185,8 +188,8 @@ server <- function(input, output, session) {
     else if (input$cell.plot == "ridge") Seurat::RidgePlot(sample, features = feats, ncol = width)
     else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
   })
-  output$stat <- renderDataTable(view_table(calc_post(), input$stat.columns, "Annotation"), DT_OPTS)
-  output$info <- renderDataTable(view_table(data_info(), input$info.columns, "Gene Set"), DT_OPTS)
+  output$stat <- renderDataTable(view_table(calc_post(), input$stat.columns, "Annotation"), LARGE_DT)
+  output$info <- renderDataTable(view_table(data_info(), input$info.columns, "Gene Set"), LARGE_DT)
   
   output$file.down <- downloadHandler("glacier_results.csv", . %>% write_csv(calc_post(), .))
 }
