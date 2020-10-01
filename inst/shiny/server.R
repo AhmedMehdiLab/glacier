@@ -13,6 +13,7 @@ library(tools)
 
 # if pushing to shinyapps.io
 # devtools::install_github("lilin-yang/glacier")
+# setRepositories()
 # library(limma)
 # library(Seurat)
 
@@ -36,8 +37,9 @@ server <- function(input, output, session) {
   
   if (LOAD_EXAMPLES) isolate({
     # if pushing to shinyapps.io
-    # store$anno$GEPART <- readRDS("gepart_a.rds")
-    # store$data$GEPART <- readRDS("gepart_d.rds")
+    # store$anno$GEPATH <- readRDS("GEA.rds")
+    # store$anno[["MSigDB C7 example"]] <- readRDS("MSA.rds")
+    # store$data$GEPATH <- readRDS("GED.rds")
     
     store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
     store$data$Example <- import_database(system.file("extdata", "ex_data.csv", package = "glacier"), ",", FALSE, c(2, 4), 0)
