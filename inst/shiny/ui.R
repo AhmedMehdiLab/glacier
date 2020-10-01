@@ -35,6 +35,7 @@ etcPane <- tabPanel(
   varSelectizeInput("info.columns", "Information", NULL, multiple = T, options = list(placeholder = "Select columns to display")),
   varSelectizeInput("stat.columns", "Statistics", NULL, multiple = T, options = list(placeholder = "Select columns to display")), hr(),
   
+  p("MSigDB XML files available ", a("here", href = "https://data.broadinstitute.org/gsea-msigdb/msigdb/release/")),
   fileInput("file.up", NULL, buttonLabel = "Upload..."),
   downloadButton("file.down", "Download", class = "wide"),
   tags$head(tags$style(".wide {width: 100%;}"))
