@@ -36,7 +36,7 @@ You can install the development version of glacier from from
 [GitHub](https://github.com/) with:
 
     # install.packages("devtools")
-    devtools::install_github("lilin-yang/glacier", build_vignettes = TRUE)
+    devtools::install_github("lilin-yang/glacier")
 
 Description
 -----------
