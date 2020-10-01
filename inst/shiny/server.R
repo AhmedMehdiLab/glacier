@@ -96,7 +96,7 @@ server <- function(input, output, session) {
   data_sets <- reactive(data_proc()$gs_info$name)
   
   cell_gene_list <- reactive(if (input$cell.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
-  cell_anno_list <- reactive(anno_list() %>% str_sort() %>% set_names(.) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
+  cell_anno_list <- reactive(anno_list() %>% str_sort() %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
   cell_anno_gene <- reactive(cell_anno_list()[[input$cell.anno]])
   
   gene_ok <- reactive(intersect(input_proc()$gene, data_list()))
@@ -133,8 +133,16 @@ server <- function(input, output, session) {
   calc_pre <- reactive(glacier:::calculate_pre(input_proc(), anno_list(), anno_proc()$gs_annos, data_proc()$gs_genes))
   calc_post <- reactive(glacier:::calculate_post(calc_pre()$stats_pre, nrow(input_proc()), max(input$input.universe, universe())))
   
-  bars_stat <- reactive(calc_post() %>% arrange(if (input$bars.anno.order == "Annotation") str_to_lower(Annotation) else desc(.data[[input$bars.anno.order]])))
-  over_stat <- reactive(calc_post() %>% arrange(if (input$over.anno.order == "Annotation") str_to_lower(Annotation) else desc(.data[[input$over.anno.order]])))
+  bars_stat <- reactive(calc_post() %>% arrange(
+    if (input$bars.anno.order == "Annotation") str_to_lower(Annotation)
+    else if (input$bars.anno.order %in% c("P-value", "Adjusted P-value")) .data[[input$bars.anno.order]]
+    else desc(.data[[input$bars.anno.order]])
+  ))
+  over_stat <- reactive(calc_post() %>% arrange(
+    if (input$over.anno.order == "Annotation") str_to_lower(Annotation)
+    else if (input$over.anno.order %in% c("P-value", "Adjusted P-value")) .data[[input$over.anno.order]]
+    else desc(.data[[input$over.anno.order]])
+  ))
   over_input <- reactive(
     if (input$over.gene.order == "input") input_proc()
     else if (input$over.gene.order == "names") input_proc() %>% arrange(gene)

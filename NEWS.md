@@ -1,4 +1,7 @@
 # glacier (development)
+## glacier 0.12.4
+* Annotations when sorted by P-value or Adjusted P-value are sorted ascending
+
 ## glacier 0.12.3
 * Make input statistics more descriptive
 * Documentation updates
