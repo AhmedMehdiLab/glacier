@@ -99,7 +99,7 @@ server <- function(input, output, session) {
   
   cell_gene_list <- reactive(if (input$cell.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
   cell_anno_list <- reactive(calc_post() %>% filter(`Adjusted P-value` <= 0.05) %>% pull(Annotation) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
-  cell_anno_gene <- reactive(cell_anno_list()[[input$cell.anno]])
+  cell_anno_gene <- reactive(if (input$cell.anno == "") character() else cell_anno_list()[[input$cell.anno]])
   
   gene_ok <- reactive(intersect(input_proc()$gene, data_list()))
   gene_no <- reactive(setdiff(input_proc()$gene, data_list()))
