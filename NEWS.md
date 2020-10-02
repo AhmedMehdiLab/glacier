@@ -1,4 +1,9 @@
 # glacier (development)
+## glacier 0.12.5
+* Switched ggplot2 themes
+* Filter annotations in single-cell options by default
+* Context help for single-cell options
+
 ## glacier 0.12.4
 * Annotations when sorted by P-value or Adjusted P-value are sorted ascending
 

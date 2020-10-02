@@ -66,7 +66,7 @@ plot_overlap <- function(matches, value, input, stats, val_trans = "identity") {
       na.value = "transparent", trans = val_trans,
       colours = grDevices::hcl.colors(3, palette = "Blue-Red 2")
     ) +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 0)) +
+    ggplot2::theme_classic() +
     if (nrow(data) != 0) ggplot2::scale_x_discrete(position = "top")
 }
 
@@ -119,5 +119,5 @@ plot_stats <- function(stats, value, color, val_trans = "identity",
     ggplot2::scale_x_continuous(trans = val_trans) +
     ggplot2::scale_fill_gradient(low = "black", high = "white",
                                  trans = col_trans) +
-    ggplot2::theme_minimal()
+    ggplot2::theme_classic()
 }
