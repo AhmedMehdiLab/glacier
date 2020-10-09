@@ -22,7 +22,7 @@ homePane <- tabPanel(
   verbatimTextOutput("data.count", T),
   
   selectInput("cell.source", "Seurat data", c("No Seurat data" = "")),
-  selectInput("cell.cluster", NULL, c("Inter-cluster" = "inter")),
+  selectInput("cell.cluster", NULL, c("Inter-cluster" = "_inter_")),
   selectInput("cell.select", NULL, c("No clusters" = "")),
   selectInput("cell.compare", NULL, c("No clusters" = "")),
   verbatimTextOutput("cell.count", T)

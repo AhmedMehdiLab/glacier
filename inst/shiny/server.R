@@ -69,15 +69,16 @@ server <- function(input, output, session) {
   info_raw <- reactive(if (input$info.source == "anno") anno_raw() else data_raw()$gs_info)
   universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% c(input_proc()$gene) %>% unique %>% length)
   
+  cgname <- reactive(if ("grp" %in% names(cell_raw()@meta.data)) "grp" else "group")
   clusts <- reactive(levels(cell_raw()))
-  cgroup <- reactive(unique(cell_raw()@meta.data$grp))
+  cgroup <- reactive(unique(cell_raw()@meta.data %>% pull(cgname())))
   info <- reactive(info_raw() %>% select("name", "info"))
   
   # secondary controls
   observe({
     opts <- tryCatch(
-      if (is.null(cgroup())) c("Inter-cluster" = "inter")
-      else c("Inter-cluster" = "inter", setNames(clusts(), str_c("Intra-cluster ", clusts()))),
+      if (is.null(cgroup())) c("Inter-cluster" = "_inter_")
+      else c("Inter-cluster" = "_inter_", "Intra-cluster" = "_intra_",  setNames(clusts(), str_c("Intra-cluster ", clusts()))),
       error = function(e) NULL
     )
     
@@ -85,7 +86,7 @@ server <- function(input, output, session) {
   })
   observe({
     opts <- tryCatch(
-      if (input$cell.cluster == "inter") opts <- setNames(clusts(), str_c("Compare cluster ", clusts()))
+      if (input$cell.cluster == "_inter_") opts <- setNames(clusts(), str_c("Compare cluster ", clusts()))
       else opts <- setNames(cgroup(), str_c("Compare group ", cgroup())),
       error = function(e) NULL
     )
@@ -94,7 +95,7 @@ server <- function(input, output, session) {
   })
   observe({
     opts <- tryCatch(
-      if (input$cell.cluster == "inter") opts <- c("Against all others" = "_all_", setNames(clusts(), str_c("Against cluster ", clusts())))
+      if (input$cell.cluster == "_inter_") opts <- c("Against all others" = "_all_", setNames(clusts(), str_c("Against cluster ", clusts())))
       else opts <- c("Against all others" = "_all_", setNames(cgroup(), str_c("Against group ", cgroup()))),
       error = function(e) NULL
     )
@@ -109,7 +110,7 @@ server <- function(input, output, session) {
   anno_proc <- reactive(glacier:::process_annotations(anno_raw(), info(), input$anno.types))
   cell_proc <- reactive({
     tryCatch(
-      process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "_all_") input$cell.compare, if (input$cell.cluster != "inter") "grp", if (input$cell.cluster != "inter") input$cell.cluster),
+      process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "_all_") input$cell.compare, if (input$cell.cluster != "_inter_") cgname(), if (!input$cell.cluster %in% c("_inter_", "_intra_")) input$cell.cluster),
       error = function(e) tibble(gene = character(), value = numeric())
     )
   })
