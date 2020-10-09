@@ -140,8 +140,10 @@ process_input_text <- function(text) {
 #' for values less than \code{max_p}.
 #'
 #' @param seurat Seurat object
-#' @param clst_1 first cluster
-#' @param clst_2 optional: second cluster; default all others
+#' @param id_1 first identity
+#' @param id_2 optional: second identity; default all others
+#' @param group optional: subgroup of cluster
+#' @param cluster optional: cluster selected
 #' @param max_p P-value cutoff, only genes with P-values less than this will be
 #'   returned
 #'
@@ -155,14 +157,16 @@ process_input_text <- function(text) {
 #' seurat <- readRDS(seu_path)
 #'
 #' input <- process_input_seurat(seurat, 0)
-process_input_seurat <- function(seurat, clst_1, clst_2 = NULL, max_p = 0.05) {
+process_input_seurat <- function(seurat, id_1, id_2 = NULL, group = NULL,
+                                 cluster = NULL, max_p = 0.05) {
   if (!requireNamespace("Seurat", quietly = T))
     stop("Package 'Seurat' is required for this feature")
-  if (!is.null(clst_2) && clst_1 == clst_2)
+  if (!is.null(id_2) && id_1 == id_2)
     return(tibble::tibble(gene = character(), value = numeric()))
 
   seurat %>%
-    Seurat::FindMarkers(ident.1 = clst_1, ident.2 = clst_2) %>%
+    Seurat::FindMarkers(ident.1 = id_1, ident.2 = id_2, group.by = group,
+                        subset.ident = cluster) %>%
     tibble::rownames_to_column("gene") %>%
     tibble::tibble() %>%
     dplyr::select("gene", value = "p_val_adj") %>%

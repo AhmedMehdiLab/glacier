@@ -1,4 +1,8 @@
 # glacier (development)
+## glacier 0.12.6
+* Add intra-cluster differential expression view options
+* Update documentation
+
 ## glacier 0.12.5
 * Switched ggplot2 themes
 * Filter annotations in single-cell options by default

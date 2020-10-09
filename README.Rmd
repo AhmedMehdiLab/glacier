@@ -16,7 +16,6 @@ knitr::opts_chunk$set(
 # glacier <img src="man/figures/icon.png" align="right" height="139">
 
 <!-- badges: start -->
-[![master-build-macos Actions Status](https://github.com/lilin-yang/glacier/workflows/build-macos/badge.svg)](https://github.com/lilin-yang/glacier/actions)
 <!-- badges: end -->
 
 The goal of glacier is to calculate annotation overlap statistics for gene sets.
@@ -42,7 +41,7 @@ You can install the development version of glacier from from [GitHub](https://gi
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("lilin-yang/glacier", build_vignettes = TRUE)
+devtools::install_github("AhmedMehdiLab/glacier", build_vignettes = TRUE)
 ```
 ## Description
 
@@ -67,9 +66,6 @@ can be seen in `vignette("console", package = "glacier")`.
 A web interface for those less familiar with R is also provided, and can be
 started with `webstart()`. A guide to using the web interface can be found in
 `vignette("web-app", package = "glacier")`.
-
-As an alternative, an instance is hosted online at
-[shinyapps.io](https://lilin-yang.shinyapps.io/glacier/).
 
 ## Acknowledgements
 

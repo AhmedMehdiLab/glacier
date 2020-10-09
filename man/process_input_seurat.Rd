@@ -4,14 +4,25 @@
 \alias{process_input_seurat}
 \title{Extract differentially expressed genes from Seurat object}
 \usage{
-process_input_seurat(seurat, clst_1, clst_2 = NULL, max_p = 0.05)
+process_input_seurat(
+  seurat,
+  id_1,
+  id_2 = NULL,
+  group = NULL,
+  cluster = NULL,
+  max_p = 0.05
+)
 }
 \arguments{
 \item{seurat}{Seurat object}
 
-\item{clst_1}{first cluster}
+\item{id_1}{first identity}
 
-\item{clst_2}{optional: second cluster; default all others}
+\item{id_2}{optional: second identity; default all others}
+
+\item{group}{optional: subgroup of cluster}
+
+\item{cluster}{optional: cluster selected}
 
 \item{max_p}{P-value cutoff, only genes with P-values less than this will be
 returned}

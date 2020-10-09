@@ -5,9 +5,6 @@ glacier <img src="man/figures/icon.png" align="right" height="139">
 ===================================================================
 
 <!-- badges: start -->
-
-[![master-build-macos Actions
-Status](https://github.com/lilin-yang/glacier/workflows/build-macos/badge.svg)](https://github.com/lilin-yang/glacier/actions)
 <!-- badges: end -->
 
 The goal of glacier is to calculate annotation overlap statistics for
@@ -36,7 +33,7 @@ You can install the development version of glacier from from
 [GitHub](https://github.com/) with:
 
     # install.packages("devtools")
-    devtools::install_github("lilin-yang/glacier")
+    devtools::install_github("AhmedMehdiLab/glacier", build_vignettes = TRUE)
 
 Description
 -----------
@@ -62,9 +59,6 @@ Web application
 A web interface for those less familiar with R is also provided, and can
 be started with `webstart()`. A guide to using the web interface can be
 found in `vignette("web-app", package = "glacier")`.
-
-As an alternative, an instance is hosted online at
-[shinyapps.io](https://lilin-yang.shinyapps.io/glacier/).
 
 Acknowledgements
 ----------------

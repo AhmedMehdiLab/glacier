@@ -12,7 +12,7 @@ library(stringr)
 library(tools)
 
 # if pushing to shinyapps.io
-# devtools::install_github("lilin-yang/glacier")
+# devtools::install_github("AhmedMehdiLab/glacier")
 # setRepositories()
 # library(limma)
 # library(Seurat)
@@ -70,18 +70,49 @@ server <- function(input, output, session) {
   universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% c(input_proc()$gene) %>% unique %>% length)
   
   clusts <- reactive(levels(cell_raw()))
+  cgroup <- reactive(unique(cell_raw()@meta.data$grp))
   info <- reactive(info_raw() %>% select("name", "info"))
   
   # secondary controls
-  observe(updateSelectInput(session, "cell.select", NULL, setNames(clusts(), str_c("Compare cluster ", clusts()))))
-  observe(updateSelectInput(session, "cell.compare", NULL, setNames(c("all_clusts", clusts()), str_c("Against cluster ", c("(all)", clusts())))))
+  observe({
+    opts <- tryCatch(
+      if (is.null(cgroup())) c("Inter-cluster" = "inter")
+      else c("Inter-cluster" = "inter", setNames(clusts(), str_c("Intra-cluster ", clusts()))),
+      error = function(e) NULL
+    )
+    
+    updateSelectInput(session, "cell.cluster", NULL, opts)
+  })
+  observe({
+    opts <- tryCatch(
+      if (input$cell.cluster == "inter") opts <- setNames(clusts(), str_c("Compare cluster ", clusts()))
+      else opts <- setNames(cgroup(), str_c("Compare group ", cgroup())),
+      error = function(e) NULL
+    )
+    
+    updateSelectInput(session, "cell.select", NULL, opts)
+  })
+  observe({
+    opts <- tryCatch(
+      if (input$cell.cluster == "inter") opts <- c("Against all others" = "_all_", setNames(clusts(), str_c("Against cluster ", clusts())))
+      else opts <- c("Against all others" = "_all_", setNames(cgroup(), str_c("Against group ", cgroup()))),
+      error = function(e) NULL
+    )
+    
+    updateSelectInput(session, "cell.compare", NULL, opts)
+  })
   observe(updateSelectInput(session, "data.categories", NULL, levels(data_raw()$gs_info$category), levels(data_raw()$gs_info$category)[1]))
   observe(updateSelectInput(session, "data.organisms", NULL, levels(data_raw()$gs_info$organism), levels(data_raw()$gs_info$organism)[1]))
   observe(updateNumericInput(session, "input.universe", NULL, universe(), universe()))
   
   # process data
   anno_proc <- reactive(glacier:::process_annotations(anno_raw(), info(), input$anno.types))
-  cell_proc <- reactive(process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "all_clusts") input$cell.compare))
+  cell_proc <- reactive({
+    tryCatch(
+      process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "_all_") input$cell.compare, if (input$cell.cluster != "inter") "grp", if (input$cell.cluster != "inter") input$cell.cluster),
+      error = function(e) tibble(gene = character(), value = numeric())
+    )
+  })
   data_proc <- reactive(glacier:::process_database(data_raw(), input$data.categories, input$data.organisms))
   text_proc <- reactive(input$input.text %>% process_input_text) %>% debounce(DEBOUNCE_TIME)
   cell_reductions <- reactive(DIM_RED[DIM_RED %in% names(cell_raw()@reductions)])
