@@ -78,8 +78,8 @@ server <- function(input, output, session) {
   observe({
     opts <- tryCatch(
       if (is.null(cgroup())) c("Inter-cluster" = "_inter_")
-      else c("Inter-cluster" = "_inter_", "Intra-cluster" = "_intra_",  setNames(clusts(), str_c("Intra-cluster ", clusts()))),
-      error = function(e) NULL
+      else c("Inter-cluster" = "_inter_", "Intra-cluster" = "_intra_", setNames(clusts(), str_c("Intra-cluster ", clusts()))),
+      error = function(e) c("Inter-cluster" = "_inter_")
     )
     
     updateSelectInput(session, "cell.cluster", NULL, opts)
@@ -110,7 +110,7 @@ server <- function(input, output, session) {
   anno_proc <- reactive(glacier:::process_annotations(anno_raw(), info(), input$anno.types))
   cell_proc <- reactive({
     tryCatch(
-      process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "_all_") input$cell.compare, if (input$cell.cluster != "_inter_") cgname(), if (!input$cell.cluster %in% c("_inter_", "_intra_")) input$cell.cluster),
+      process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "_all_") input$cell.compare, if (input$cell.cluster != "_inter_") "grp", if (!input$cell.cluster %in% c("_inter_", "_intra_")) input$cell.cluster),
       error = function(e) tibble(gene = character(), value = numeric())
     )
   })
