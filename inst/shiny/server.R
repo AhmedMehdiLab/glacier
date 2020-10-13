@@ -41,8 +41,15 @@ server <- function(input, output, session) {
     # store$anno[["MSigDB C7 example"]] <- readRDS("MSA.rds")
     # store$data$GEPATH <- readRDS("GED.rds")
     
-    store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
-    store$data$Example <- import_database(system.file("extdata", "ex_data.csv", package = "glacier"), ",", FALSE, c(2, 4), 0)
+    # load private data
+    store$anno$`E.PAGE` <- readRDS(system.file("extdata", "private", "epage_anno.rds", package = "glacier"))
+    store$anno$`MSigDB C7` <- readRDS(system.file("extdata", "private", "msigdb_anno_orig.rds", package = "glacier"))
+    store$anno$`MSigDB C7 <MODIFIED>` <- readRDS(system.file("extdata", "private", "msigdb_anno.rds", package = "glacier"))
+    store$data$`E.PAGE` <- readRDS(system.file("extdata", "private", "epage_data.rds", package = "glacier"))
+    store$data$`MSigDB 7.2` <- readRDS(system.file("extdata", "private", "msigdb_data.rds", package = "glacier"))
+    
+    # store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
+    # store$data$Example <- import_database(system.file("extdata", "ex_data.csv", package = "glacier"), ",", FALSE, c(2, 4), 0)
     store$cell$Example <- readRDS(system.file("extdata", "ex_seurat.rds", package = "glacier"))
   })
   
