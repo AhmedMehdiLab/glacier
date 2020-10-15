@@ -31,6 +31,7 @@ homePane <- tabPanel(
 etcPane <- tabPanel(
   NULL, br(), icon = icon("cog", lib = "glyphicon"),
   radioButtons("info.source", "Description source", c("Annotations" = "anno", "Database" = "data"), inline = T),
+  checkboxInput("stat.sigonly", "Significant results only", T),
   checkboxInput("name.fix", "Remove underscores from gene set names", T), hr(),
   
   varSelectizeInput("info.columns", "Information", NULL, multiple = T, options = list(placeholder = "Select columns to display")),

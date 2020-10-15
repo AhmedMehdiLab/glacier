@@ -172,7 +172,15 @@ server <- function(input, output, session) {
   # compute data
   matches <- reactive(calc_pre()$matches)
   calc_pre <- reactive(glacier:::calculate_pre(input_proc(), anno_list(), anno_proc()$gs_annos, data_proc()$gs_genes))
-  calc_post <- reactive(glacier:::calculate_post(calc_pre()$stats_pre, nrow(input_proc()), max(input$input.universe, universe())))
+  calc_post <- reactive({
+    stats <- glacier:::calculate_post(calc_pre()$stats_pre, nrow(input_proc()), max(input$input.universe, universe()))
+    
+    if (input$stat.sigonly) {
+      stats <- stats %>% filter(`Adjusted P-value` <= 0.05)
+    }
+    
+    return(stats)
+  })
   
   bars_stat <- reactive(calc_post() %>% arrange(
     if (input$bars.anno.order == "Annotation") str_to_lower(Annotation)
