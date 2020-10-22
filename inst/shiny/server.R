@@ -26,6 +26,7 @@ OVER_ANNO_MAX <- 80
 OVER_GENE_MAX <- 100
 DEBOUNCE_TIME <- 1000
 
+RAND_SEED <- 444
 LARGE_DT <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 235px)")
 SMALL_DT <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 220.3px)")
 DIM_RED <- c("Principal component analysis" = "pca", "Independent component analysis" = "ica", "t-distributed Stochastic Neighbor Embedding" = "tsne", "Uniform Manifold Approximation and Projection" = "umap")
@@ -247,7 +248,7 @@ server <- function(input, output, session) {
     if (input$cell.plot != "heat") feats <- unique(feats)
     
     width <- feats %>% length %>% sqrt %>% ceiling
-    sample <- subset(cell_raw(), downsample = input$cell.downsample)
+    sample <- subset(cell_raw(), downsample = input$cell.downsample, seed = RAND_SEED)
     if (input$cell.plot == "dot") Seurat::DotPlot(sample, features = feats)
     else if (input$cell.plot == "feat") Seurat::FeaturePlot(sample, features = feats, ncol = width)
     else if (input$cell.plot == "heat") Seurat::DoHeatmap(sample, features = feats)

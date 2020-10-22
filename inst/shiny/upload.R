@@ -1,3 +1,5 @@
+RAND_SEED <- 444
+
 uploadUI <- function(id) {ns <- NS(id)
   modalDialog(
     # configuration
@@ -50,7 +52,7 @@ uploadServer <- function(id, file, values) moduleServer(id,
       updateTextInput(session, "name", value = name)
       
       # parse data and update controls
-      if (input$type == "cell") proc <- reactive(subset(readRDS(path), downsample = input$down))
+      if (input$type == "cell") proc <- reactive(subset(readRDS(path), downsample = input$down, seed = RAND_SEED))
       if (input$type == "msig") proc <- reactive(import_msigdb(path))
       if (is_delim) {
         temp <- reactive(glacier:::import_delim_path(path, input$delim, input$header))
