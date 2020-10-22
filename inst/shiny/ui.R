@@ -73,8 +73,9 @@ cellPane <- tabPanel(
   selectInput("cell.plot", "Expression plot", c("Dot Plot" = "dot", "Feature Plot" = "feat", "Heatmap" = "heat", "Ridge Plot" = "ridge", "Violin Plot" = "violin"), "feat"),
   selectInput("cell.anno", "Annotation (adjusted P-value ≤ 0.05 only)", c("No annotations loaded" = "")),
   selectInput("cell.genes", "Genes (click to select more)", c("Select genes to display" = ""), multiple = T),
+  selectInput("cell.view.cluster", "Clusters", NULL, multiple = TRUE),
   checkboxInput("cell.gene.match", "Restrict to genes in input", T),
-  checkboxInput("cell.gene.cluster", "Cluster genes based on expression")
+  checkboxInput("cell.gene.cluster", "Group genes based on expression")
 )
 
 twoTable <- function(left, right) fluidRow(column(6, dataTableOutput(left)), column(6, dataTableOutput(right)))

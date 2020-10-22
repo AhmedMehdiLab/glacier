@@ -110,6 +110,7 @@ server <- function(input, output, session) {
     
     updateSelectInput(session, "cell.compare", NULL, opts)
   })
+  observe(updateSelectInput(session, "cell.view.cluster", NULL, clusts(), clusts()))
   observe(updateSelectInput(session, "data.categories", NULL, levels(data_raw()$gs_info$category), levels(data_raw()$gs_info$category)[1]))
   observe(updateSelectInput(session, "data.organisms", NULL, levels(data_raw()$gs_info$organism), levels(data_raw()$gs_info$organism)[1]))
   observe(updateNumericInput(session, "input.universe", NULL, universe(), universe()))
@@ -235,6 +236,7 @@ server <- function(input, output, session) {
   view_over_gene <- reactive(over_input()[store$over.gene.select[1]:store$over.gene.select[2], ])
   view_cell_gene <- reactive(input$cell.genes) %>% debounce(DEBOUNCE_TIME)
   view_cell_gene_clust <- reactive(cell_raw() %>% Seurat::FindAllMarkers(features = view_cell_gene()) %>% group_by(cluster) %>% pull(gene))
+  view_cell_clust <- reactive(input$cell.view.cluster) %>% debounce(DEBOUNCE_TIME)
   
   # secondary information
   view_table <- function(table, cols, split) table %>% select(!!!cols) %>% mutate(across(!!split, str_replace_all, "_", ifelse(input$name.fix, " ", "_")))
@@ -248,7 +250,7 @@ server <- function(input, output, session) {
     if (input$cell.plot != "heat") feats <- unique(feats)
     
     width <- feats %>% length %>% sqrt %>% ceiling
-    sample <- subset(cell_raw(), downsample = input$cell.downsample, seed = RAND_SEED)
+    sample <- subset(cell_raw(), downsample = input$cell.downsample, idents = view_cell_clust(), seed = RAND_SEED)
     if (input$cell.plot == "dot") Seurat::DotPlot(sample, features = feats)
     else if (input$cell.plot == "feat") Seurat::FeaturePlot(sample, features = feats, ncol = width, label = TRUE, repel = TRUE)
     else if (input$cell.plot == "heat") Seurat::DoHeatmap(sample, features = feats)
