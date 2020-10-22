@@ -1,4 +1,10 @@
 # glacier (development)
+## glacier 0.12.7
+* Fixed seed to known value (444)
+* Subsample to 500 by default
+* Show labels in feature plot
+* Allow sub-setting expression display
+
 ## glacier 0.12.6
 * Add intra-cluster differential expression view options
 * Update documentation
