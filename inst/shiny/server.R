@@ -138,8 +138,8 @@ server <- function(input, output, session) {
   data_sets <- reactive(data_proc()$gs_info$name)
   
   cell_gene_list <- reactive(if (input$cell.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
-  cell_anno_list <- reactive(calc_post() %>% filter(`Adjusted P-value` <= 0.05) %>% pull(Annotation) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
-  cell_anno_gene <- reactive(if (input$cell.anno == "") character() else cell_anno_list()[[input$cell.anno]])
+  cell_anno_list <- reactive(calc_post() %>% filter(`Adjusted P-value` <= 0.05) %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
+  cell_anno_gene <- reactive(if (input$cell.anno == "") character() else cell_anno_list()[[input$cell.anno]] %>% str_sort(numeric = TRUE))
   
   gene_ok <- reactive(intersect(input_proc()$gene, data_list()))
   gene_no <- reactive(setdiff(input_proc()$gene, data_list()))
@@ -250,7 +250,7 @@ server <- function(input, output, session) {
     width <- feats %>% length %>% sqrt %>% ceiling
     sample <- subset(cell_raw(), downsample = input$cell.downsample, seed = RAND_SEED)
     if (input$cell.plot == "dot") Seurat::DotPlot(sample, features = feats)
-    else if (input$cell.plot == "feat") Seurat::FeaturePlot(sample, features = feats, ncol = width)
+    else if (input$cell.plot == "feat") Seurat::FeaturePlot(sample, features = feats, ncol = width, label = TRUE, repel = TRUE)
     else if (input$cell.plot == "heat") Seurat::DoHeatmap(sample, features = feats)
     else if (input$cell.plot == "ridge") Seurat::RidgePlot(sample, features = feats, ncol = width)
     else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
