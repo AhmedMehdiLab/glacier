@@ -22,7 +22,7 @@ uploadUI <- function(id) {ns <- NS(id)
         checkboxInput(ns("header"), "File has header"),
         sliderInput(ns("content"), "Content columns", 1, 10, c(1, 10)),
         numericInput(ns("info"), "Description column", 0, 10, 1),
-        numericInput(ns("down"), "Downsample", 50, 1),
+        numericInput(ns("down"), "Downsample", 500, 1),
         helpText("If no descriptions are available, set 'Description column' to 0"), br(),
         helpText("Please wait until preview has loaded before clicking 'Confirm'")),
       column(9, h5("Preview"),

@@ -68,7 +68,7 @@ overPane <- tabPanel(
 cellPane <- tabPanel(
   NULL, br(), icon = icon("screenshot", lib = "glyphicon"),
   selectInput("cell.overview", "Overview plot", c("No Seurat data selected" = "")),
-  numericInput("cell.downsample", "Downsample", 50, 3), hr(),
+  numericInput("cell.downsample", "Downsample", 500, 3), hr(),
   
   selectInput("cell.plot", "Expression plot", c("Dot Plot" = "dot", "Feature Plot" = "feat", "Heatmap" = "heat", "Ridge Plot" = "ridge", "Violin Plot" = "violin"), "feat"),
   selectInput("cell.anno", "Annotation (adjusted P-value ≤ 0.05 only)", c("No annotations loaded" = "")),
