@@ -37,6 +37,8 @@ etcPane <- tabPanel(
   varSelectizeInput("info.columns", "Information", NULL, multiple = T, options = list(placeholder = "Select columns to display")),
   varSelectizeInput("stat.columns", "Statistics", NULL, multiple = T, options = list(placeholder = "Select columns to display")), hr(),
   
+  selectInput("trans", "Transform symbols", c("(none)" = "", "Human to mouse" = "hm", "Mouse to human" = "mh")), hr(),
+  
   p("MSigDB XML files available ", a("here", href = "https://data.broadinstitute.org/gsea-msigdb/msigdb/release/")),
   fileInput("file.up", NULL, buttonLabel = "Upload..."),
   downloadButton("file.down", "Download", class = "wide"),
@@ -84,10 +86,10 @@ overView <- tabPanel("Overlap", icon = icon("equalizer", lib = "glyphicon"), plo
 cellView <- tabPanel("Cluster", icon = icon("screenshot", lib = "glyphicon"), plotOutput("cell", height = "calc(100vh - 132.5px)"))
 heatView <- tabPanel("Expression", icon = icon("fire", lib = "glyphicon"), plotOutput("heat", height = "calc(100vh - 132.5px)"))
 statView <- tabPanel("Statistics", icon = icon("th", lib = "glyphicon"), dataTableOutput("stat"))
-contView <- tabPanel("Contents", icon = icon("book", lib = "glyphicon"), twoTable("data.gene", "cell.gene"))
-geneView <- tabPanel("Recognised", icon = icon("ok", lib = "glyphicon"), twoTable("gene.ok", "gene.no"))
-gsetView <- tabPanel("Mismatched", icon = icon("remove", lib = "glyphicon"), twoTable("data.only", "anno.only"))
-valsView <- tabPanel("Gene Values", icon = icon("tasks", lib = "glyphicon"), twoTable("vals.ok", "vals.no"))
+contView <- tabPanel("Quality", icon = icon("ok", lib = "glyphicon"), fluidRow(
+  column(2, dataTableOutput("cont.anno")), column(2, dataTableOutput("cont.data")),
+  column(2, dataTableOutput("cont.cell")), column(3, dataTableOutput("cont.sets")), column(3, dataTableOutput("cont.input"))))
+transView <- tabPanel("Transform", icon = icon("transfer", lib = "glyphicon"), textOutput("trans.out"))
 infoView <- tabPanel("Information", icon = icon("info-sign", lib = "glyphicon"), dataTableOutput("info"))
 
 ui <- fluidPage(
@@ -95,7 +97,7 @@ ui <- fluidPage(
   titlePanel("glacier: Gene List Annotation, Calculation and Illustration of Enrichment in R"),
   sidebarLayout(
     sidebarPanel(fluidRow(column(6, inputPane), column(6, tabsetPanel(type = "pills", homePane, etcPane, barsPane, overPane, cellPane)))),
-    mainPanel(tabsetPanel(barsView, overView, cellView, heatView, statView, contView, geneView, gsetView, valsView, infoView))
+    mainPanel(tabsetPanel(barsView, overView, cellView, heatView, statView, contView, transView, infoView))
   ),
   tags$head(tags$style(".text-compare {height: calc(100vh - 170px); overflow-y: auto;}"))
 )

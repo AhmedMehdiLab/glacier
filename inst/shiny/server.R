@@ -4,11 +4,13 @@ library(shinyWidgets)
 
 library(glacier)
 
+requireNamespace("biomaRt")
 library(dplyr)
 library(magrittr)
 library(purrr)
 library(readr)
 library(stringr)
+library(tibble)
 library(tools)
 
 # if pushing to shinyapps.io
@@ -130,45 +132,48 @@ server <- function(input, output, session) {
   
   # derive data
   anno_list <- reactive(tryCatch(anno_proc()$annos %>% str_subset(input$anno.regex) %>% as.character, error = function(e) character()))
-  anno_only <- reactive(setdiff(anno_sets(), data_sets()))
   cell_gene <- reactive(rownames(cell_raw()))
   anno_sets <- reactive(anno_proc()$gs_anno$name)
   data_list <- reactive(data_proc()$genes)
   data_info <- reactive(data_proc()$gs_info %>% select(`Gene Set` = name, Information = info, Description = any_of("desc"), Category = category, Organism = organism))
-  data_only <- reactive(setdiff(data_sets(), anno_sets()))
   data_sets <- reactive(data_proc()$gs_info$name)
   
   cell_gene_list <- reactive(if (input$cell.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
   cell_anno_list <- reactive(calc_post() %>% filter(`Adjusted P-value` <= 0.05) %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
   cell_anno_gene <- reactive(if (input$cell.anno == "") character() else cell_anno_list()[[input$cell.anno]] %>% str_sort(numeric = TRUE))
   
-  gene_ok <- reactive(intersect(input_proc()$gene, data_list()))
-  gene_no <- reactive(setdiff(input_proc()$gene, data_list()))
-  vals_ok <- reactive(input_proc() %>% filter(!is.na(value), .preserve = T) %>% pull(gene))
-  vals_no <- reactive(input_proc() %>% filter(is.na(value), .preserve = T) %>% pull(gene))
+  cont_sets <- reactive(
+    anno_proc()$gs_anno %>%
+      select("name") %>%
+      add_column("anno" = TRUE) %>%
+      full_join(
+        data_proc()$gs_info %>%
+          select("name") %>%
+          add_column("data" = TRUE)
+      ) %>%
+      transmute("Set" = str_replace_all(name, "_", ifelse(input$name.fix, " ", "_")), "Status" = ifelse(!is.na(anno) & !is.na(data), "OK", ifelse(is.na(anno), "Database only", "Annotations only")))
+  )
+  cont_input <- reactive(input_proc() %>% rename("Input" = "gene", "Value" = "value") %>% mutate("Recognised" = Input %in% data_list()))
   
   # primary information
   output$anno.count <- renderText(str_c(length(anno_sets()), " gene sets annotated\n", length(anno_list()), " unique annotations"))
   output$cell.count <- renderText(str_c(nrow(cell_raw()), " genes\n", ncol(cell_raw()), " cells\n", length(clusts()), " clusters"))
   output$data.count <- renderText(str_c(length(data_sets()), " gene sets loaded\n", length(data_list()), " unique genes"))
-  output$input.count <- renderText(str_c(nrow(input_proc()), " unique genes\n", length(gene_ok()), " genes recognised\n", length(vals_ok()), " values entered"))
+  output$input.count <- renderText(str_c(nrow(input_proc()), " unique genes\n", sum(cont_input()$Recognised), " genes recognised\n", sum(!is.na(cont_input()$Value)), " values entered"))
   
-  output$cell.gene <- renderDataTable(tibble(`Genes in Seurat file` = rownames(cell_raw())), SMALL_DT)
-  output$data.gene <- renderDataTable(tibble(`Genes in database` = data_list()), SMALL_DT)
-  output$anno.only <- renderDataTable(tibble(`Gene sets only in annotations` = anno_only()), SMALL_DT)
-  output$data.only <- renderDataTable(tibble(`Gene sets only in database` = data_only()), SMALL_DT)
-  output$gene.ok <- renderDataTable(tibble(`Genes recognised` = gene_ok()), SMALL_DT)
-  output$gene.no <- renderDataTable(tibble(`Genes not recognised` = gene_no()), SMALL_DT)
-  output$vals.ok <- renderDataTable(tibble(`Genes with values` = vals_ok()), SMALL_DT)
-  output$vals.no <- renderDataTable(tibble(`Genes without values` = vals_no()), SMALL_DT)
-  
+  output$cont.anno <- renderDataTable(calc_pre()$stats %>% select("Annotations" = "name"), SMALL_DT)
+  output$cont.sets <- renderDataTable(cont_sets(), SMALL_DT)
+  output$cont.cell <- renderDataTable(tibble(Seurat = rownames(cell_raw())), SMALL_DT)
+  output$cont.data <- renderDataTable(tibble(Database = data_list()), SMALL_DT)
+  output$cont.input <- renderDataTable(cont_input(), SMALL_DT)
+
   # actions
   observe(updateSelectInput(session, "cell.anno", NULL, names(cell_anno_list())))
   observe(updateSelectInput(session, "cell.genes", NULL, cell_anno_gene(), head(cell_anno_gene(), 16)))
   observe(updateSelectInput(session, "cell.overview", NULL, cell_reductions()))
-  observeEvent(c(anno_only(), data_only()), {
+  observeEvent(cont_sets(), {
     removeNotification(store$note.overlap)
-    store$note.overlap <- if (length(anno_only()) + length(data_only())) showNotification("Gene sets of selected annotations and database do not match", duration = NULL, type = "warning")
+    store$note.overlap <- if (!all(cont_sets()$Status == "OK")) showNotification("Gene sets of selected annotations and database do not match", duration = NULL, type = "warning")
   })
   
   # compute data
@@ -256,6 +261,17 @@ server <- function(input, output, session) {
     else if (input$cell.plot == "heat") Seurat::DoHeatmap(sample, features = feats)
     else if (input$cell.plot == "ridge") Seurat::RidgePlot(sample, features = feats, ncol = width)
     else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
+  })
+  output$trans.out <- renderText({
+    human <- biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+    mouse <- biomaRt::useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+
+    genes <- ""
+    vals <- input_proc()$gene
+    if (input$trans == "mh") genes <- biomaRt::getLDS(attributes = "mgi_symbol", filters = "mgi_symbol", values = vals, mart = mouse, attributesL = "hgnc_symbol", martL = human, uniqueRows = T)
+    if (input$trans == "hm") genes <- biomaRt::getLDS(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = vals, mart = human, attributesL = "mgi_symbol", martL = mouse, uniqueRows = T)
+
+    return(genes)
   })
   output$stat <- renderDataTable(view_table(calc_post(), input$stat.columns, "Annotation"), LARGE_DT)
   output$info <- renderDataTable(view_table(data_info(), input$info.columns, "Gene Set"), LARGE_DT)
