@@ -68,5 +68,7 @@ webstart <- function() {
     message("Package 'limma' from Bioconductor is recommended to accelerate \
             single-cell analysis")
 
-  shiny::runApp(system.file("shiny", package = "glacier"), launch.browser = T)
+  shiny::runApp(system.file("shiny", package = "glacier"),
+                host = "0.0.0.0",
+                launch.browser = T)
 }
