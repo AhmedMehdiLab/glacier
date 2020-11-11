@@ -34,6 +34,9 @@ SMALL_DT <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100
 DIM_RED <- c("Principal component analysis" = "pca", "Independent component analysis" = "ica", "t-distributed Stochastic Neighbor Embedding" = "tsne", "Uniform Manifold Approximation and Projection" = "umap")
 options(shiny.maxRequestSize = 5 * 1024 ^ 3)
 
+MART_HS <- NULL
+MART_MM <- NULL
+
 server <- function(input, output, session) {
   store <- reactiveValues(anno = list(), cell = list(), data = list(), proc = reactiveValues())
   showNotification(str_c("Welcome to glacier (v", packageVersion("glacier"), ")!", collapse = ""), type = "message")
@@ -161,7 +164,7 @@ server <- function(input, output, session) {
   output$data.count <- renderText(str_c(length(data_sets()), " gene sets loaded\n", length(data_list()), " unique genes"))
   output$input.count <- renderText(str_c(nrow(input_proc()), " unique genes\n", sum(cont_input()$Recognised), " genes recognised\n", sum(!is.na(cont_input()$Value)), " values entered"))
   
-  output$cont.anno <- renderDataTable(calc_pre()$stats %>% select("Annotations" = "name"), SMALL_DT)
+  output$cont.anno <- renderDataTable(calc_pre()$stats %>% select("Annotation" = "name"), SMALL_DT)
   output$cont.sets <- renderDataTable(cont_sets(), SMALL_DT)
   output$cont.cell <- renderDataTable(tibble(Seurat = rownames(cell_raw())), SMALL_DT)
   output$cont.data <- renderDataTable(tibble(Database = data_list()), SMALL_DT)
@@ -262,17 +265,18 @@ server <- function(input, output, session) {
     else if (input$cell.plot == "ridge") Seurat::RidgePlot(sample, features = feats, ncol = width)
     else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
   })
-  output$trans.out <- renderText({
-    human <- biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-    mouse <- biomaRt::useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+  output$trans.out <- renderDataTable({
+    while (is.null(MART_HS)) MART_HS <- tryCatch(biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
+    while (is.null(MART_MM)) MART_MM <- tryCatch(biomaRt::useMart("ensembl", dataset = "mmusculus_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
 
     genes <- ""
     vals <- input_proc()$gene
-    if (input$trans == "mh") genes <- biomaRt::getLDS(attributes = "mgi_symbol", filters = "mgi_symbol", values = vals, mart = mouse, attributesL = "hgnc_symbol", martL = human, uniqueRows = T)
-    if (input$trans == "hm") genes <- biomaRt::getLDS(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = vals, mart = human, attributesL = "mgi_symbol", martL = mouse, uniqueRows = T)
-
+    if (length(vals) == 0) return(NULL)
+    if (input$trans == "mh") genes <- biomaRt::getLDS(attributes = "mgi_symbol", filters = "mgi_symbol", values = vals, mart = MART_MM, attributesL = "hgnc_symbol", martL = MART_HS)
+    if (input$trans == "hm") genes <- biomaRt::getLDS(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = vals, mart = MART_HS, attributesL = "mgi_symbol", martL = MART_MM)
+    
     return(genes)
-  })
+  }, LARGE_DT)
   output$stat <- renderDataTable(view_table(calc_post(), input$stat.columns, "Annotation"), LARGE_DT)
   output$info <- renderDataTable(view_table(data_info(), input$info.columns, "Gene Set"), LARGE_DT)
   

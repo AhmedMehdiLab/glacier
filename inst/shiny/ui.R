@@ -89,7 +89,7 @@ statView <- tabPanel("Statistics", icon = icon("th", lib = "glyphicon"), dataTab
 contView <- tabPanel("Quality", icon = icon("ok", lib = "glyphicon"), fluidRow(
   column(2, dataTableOutput("cont.anno")), column(2, dataTableOutput("cont.data")),
   column(2, dataTableOutput("cont.cell")), column(3, dataTableOutput("cont.sets")), column(3, dataTableOutput("cont.input"))))
-transView <- tabPanel("Transform", icon = icon("transfer", lib = "glyphicon"), textOutput("trans.out"))
+transView <- tabPanel("Transform", icon = icon("transfer", lib = "glyphicon"), dataTableOutput("trans.out"))
 infoView <- tabPanel("Information", icon = icon("info-sign", lib = "glyphicon"), dataTableOutput("info"))
 
 ui <- fluidPage(
