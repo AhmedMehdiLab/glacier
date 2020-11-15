@@ -1,4 +1,8 @@
 # glacier (development)
+## glacier 0.13.0
+* Added gene name conversion functionality
+* Clean up quality control tabs
+
 ## glacier 0.12.7
 * Fixed seed to known value (444)
 * Subsample to 500 by default
