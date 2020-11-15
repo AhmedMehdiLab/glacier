@@ -34,11 +34,8 @@ SMALL_DT <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100
 DIM_RED <- c("Principal component analysis" = "pca", "Independent component analysis" = "ica", "t-distributed Stochastic Neighbor Embedding" = "tsne", "Uniform Manifold Approximation and Projection" = "umap")
 options(shiny.maxRequestSize = 5 * 1024 ^ 3)
 
-MART_HS <- NULL
-MART_MM <- NULL
-
 server <- function(input, output, session) {
-  store <- reactiveValues(anno = list(), cell = list(), data = list(), proc = reactiveValues())
+  store <- reactiveValues(anno = list(), cell = list(), data = list(), mart = list(), proc = reactiveValues())
   showNotification(str_c("Welcome to glacier (v", packageVersion("glacier"), ")!", collapse = ""), type = "message")
   
   if (LOAD_EXAMPLES) isolate({
@@ -50,7 +47,7 @@ server <- function(input, output, session) {
     # load private data
     store$anno$`E.PAGE` <- readRDS(system.file("extdata", "private", "epage_anno.rds", package = "glacier"))
     store$anno$`MSigDB C7` <- readRDS(system.file("extdata", "private", "msigdb_anno_orig.rds", package = "glacier"))
-    store$anno$`MSigDB C7 <MODIFIED>` <- readRDS(system.file("extdata", "private", "msigdb_anno.rds", package = "glacier"))
+    store$anno$`MSigDB C7 (MODIFIED)` <- readRDS(system.file("extdata", "private", "msigdb_anno.rds", package = "glacier"))
     store$data$`E.PAGE` <- readRDS(system.file("extdata", "private", "epage_data.rds", package = "glacier"))
     store$data$`MSigDB 7.2` <- readRDS(system.file("extdata", "private", "msigdb_data.rds", package = "glacier"))
     
@@ -82,16 +79,16 @@ server <- function(input, output, session) {
   info_raw <- reactive(if (input$info.source == "anno") anno_raw() else data_raw()$gs_info)
   universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% c(input_proc()$gene) %>% unique %>% length)
   
-  cgname <- reactive(if ("grp" %in% names(cell_raw()@meta.data)) "grp" else "group")
-  clusts <- reactive(levels(cell_raw()))
-  cgroup <- reactive(unique(cell_raw()@meta.data %>% pull(cgname())))
+  cell_group_name <- reactive(if ("grp" %in% names(cell_raw()@meta.data)) "grp" else "group")
+  cell_clust_list <- reactive(levels(cell_raw()))
+  cell_group_list <- reactive(unique(cell_raw()@meta.data %>% pull(cell_group_name())))
   info <- reactive(info_raw() %>% select("name", "info"))
   
   # secondary controls
   observe({
     opts <- tryCatch(
-      if (is.null(cgroup())) c("Inter-cluster" = "_inter_")
-      else c("Inter-cluster" = "_inter_", "Intra-cluster" = "_intra_", setNames(clusts(), str_c("Intra-cluster ", clusts()))),
+      if (is.null(cell_group_list())) c("Inter-cluster" = "_inter_")
+      else c("Inter-cluster" = "_inter_", "Intra-cluster" = "_intra_", setNames(cell_clust_list(), str_c("Intra-cluster ", cell_clust_list()))),
       error = function(e) c("Inter-cluster" = "_inter_")
     )
     
@@ -99,8 +96,8 @@ server <- function(input, output, session) {
   })
   observe({
     opts <- tryCatch(
-      if (input$cell.cluster == "_inter_") opts <- setNames(clusts(), str_c("Compare cluster ", clusts()))
-      else opts <- setNames(cgroup(), str_c("Compare group ", cgroup())),
+      if (input$cell.cluster == "_inter_") opts <- setNames(cell_clust_list(), str_c("Compare cluster ", cell_clust_list()))
+      else opts <- setNames(cell_group_list(), str_c("Compare group ", cell_group_list())),
       error = function(e) NULL
     )
     
@@ -108,14 +105,14 @@ server <- function(input, output, session) {
   })
   observe({
     opts <- tryCatch(
-      if (input$cell.cluster == "_inter_") opts <- c("Against all others" = "_all_", setNames(clusts(), str_c("Against cluster ", clusts())))
-      else opts <- c("Against all others" = "_all_", setNames(cgroup(), str_c("Against group ", cgroup()))),
+      if (input$cell.cluster == "_inter_") opts <- c("Against all others" = "_all_", setNames(cell_clust_list(), str_c("Against cluster ", cell_clust_list())))
+      else opts <- c("Against all others" = "_all_", setNames(cell_group_list(), str_c("Against group ", cell_group_list()))),
       error = function(e) NULL
     )
     
     updateSelectInput(session, "cell.compare", NULL, opts)
   })
-  observe(updateSelectInput(session, "cell.view.cluster", NULL, clusts(), clusts()))
+  observe(updateSelectInput(session, "cell.view.cluster", NULL, cell_clust_list(), cell_clust_list()))
   observe(updateSelectInput(session, "data.categories", NULL, levels(data_raw()$gs_info$category), levels(data_raw()$gs_info$category)[1]))
   observe(updateSelectInput(session, "data.organisms", NULL, levels(data_raw()$gs_info$organism), levels(data_raw()$gs_info$organism)[1]))
   observe(updateNumericInput(session, "input.universe", NULL, universe(), universe()))
@@ -160,11 +157,11 @@ server <- function(input, output, session) {
   
   # primary information
   output$anno.count <- renderText(str_c(length(anno_sets()), " gene sets annotated\n", length(anno_list()), " unique annotations"))
-  output$cell.count <- renderText(str_c(nrow(cell_raw()), " genes\n", ncol(cell_raw()), " cells\n", length(clusts()), " clusters"))
+  output$cell.count <- renderText(str_c(nrow(cell_raw()), " genes\n", ncol(cell_raw()), " cells\n", length(cell_clust_list()), " clusters"))
   output$data.count <- renderText(str_c(length(data_sets()), " gene sets loaded\n", length(data_list()), " unique genes"))
   output$input.count <- renderText(str_c(nrow(input_proc()), " unique genes\n", sum(cont_input()$Recognised), " genes recognised\n", sum(!is.na(cont_input()$Value)), " values entered"))
   
-  output$cont.anno <- renderDataTable(calc_pre()$stats %>% select("Annotation" = "name"), SMALL_DT)
+  output$cont.anno <- renderDataTable(calc()$stats %>% select("Annotation" = "name"), SMALL_DT)
   output$cont.sets <- renderDataTable(cont_sets(), SMALL_DT)
   output$cont.cell <- renderDataTable(tibble(Seurat = rownames(cell_raw())), SMALL_DT)
   output$cont.data <- renderDataTable(tibble(Database = data_list()), SMALL_DT)
@@ -180,10 +177,19 @@ server <- function(input, output, session) {
   })
   
   # compute data
-  matches <- reactive(calc_pre()$matches)
-  calc_pre <- reactive(glacier:::calculate_pre(input_proc(), anno_list(), anno_proc()$gs_annos, data_proc()$gs_genes))
+  calc <- reactive({
+    withProgress(message = "Calculating statistics", {
+      setProgress(value = 0, detail = "Finding matches")
+      pre <- glacier:::calculate_pre(input_proc(), anno_list(), anno_proc()$gs_annos, data_proc()$gs_genes)
+      
+      setProgress(value = 0.8, detail = "Computing significance")
+      post <- glacier:::calculate_post(pre$stats_pre, nrow(input_proc()), max(input$input.universe, universe()))
+      
+      return(list(stats = post, matches = pre$matches))
+    })
+  })
   calc_post <- reactive({
-    stats <- glacier:::calculate_post(calc_pre()$stats_pre, nrow(input_proc()), max(input$input.universe, universe()))
+    stats <- calc()$stats
     
     if (input$stat.sigonly) {
       stats <- stats %>% filter(`Adjusted P-value` <= 0.05)
@@ -249,7 +255,7 @@ server <- function(input, output, session) {
   # secondary information
   view_table <- function(table, cols, split) table %>% select(!!!cols) %>% mutate(across(!!split, str_replace_all, "_", ifelse(input$name.fix, " ", "_")))
   output$bars <- renderPlot(plot_stats(view_bars(), input$bars.value, input$bars.color, input$bars.value.trans, input$bars.color.trans, input$bars.anno.sort))
-  output$over <- renderPlot(plot_overlap(calc_pre()$matches, input$over.color, view_over_gene(), view_over(), input$over.color.trans))
+  output$over <- renderPlot(plot_overlap(calc$matches, input$over.color, view_over_gene(), view_over(), input$over.color.trans))
   output$cell <- renderPlot(if (requireNamespace("Seurat", quietly = T)) Seurat::DimPlot(cell_raw(), reduction = input$cell.overview, label = T, repel = T))
   output$heat <- renderPlot({
     if (!requireNamespace("Seurat", quietly = T) || !length(view_cell_gene())) return(NULL)
@@ -268,18 +274,18 @@ server <- function(input, output, session) {
   output$trans.out <- renderDataTable({
     withProgress(message = "Connecting to Ensembl", {
       setProgress(value = 0, detail = "Retrieving Homo sapiens data")
-      while (is.null(MART_HS)) MART_HS <- tryCatch(biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
+      while (is.null(store$mart$hs)) store$mart$hs <- tryCatch(biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
       
       setProgress(value = 0.5, detail = "Retrieving Mus musculus data")
-      while (is.null(MART_MM)) MART_MM <- tryCatch(biomaRt::useMart("ensembl", dataset = "mmusculus_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
+      while (is.null(store$mart$mm)) store$mart$mm <- tryCatch(biomaRt::useMart("ensembl", dataset = "mmusculus_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
     })
     
     withProgress(message = "Converting genes", {
       genes <- ""
       vals <- input_proc()$gene
       if (length(vals) == 0) return(NULL)
-      if (input$trans == "mh") genes <- biomaRt::getLDS(attributes = "mgi_symbol", filters = "mgi_symbol", values = vals, mart = MART_MM, attributesL = "hgnc_symbol", martL = MART_HS)
-      if (input$trans == "hm") genes <- biomaRt::getLDS(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = vals, mart = MART_HS, attributesL = "mgi_symbol", martL = MART_MM)
+      if (input$trans == "mh") genes <- biomaRt::getLDS(attributes = "mgi_symbol", filters = "mgi_symbol", values = vals, mart = store$mart$mm, attributesL = "hgnc_symbol", martL = store$mart$hs)
+      if (input$trans == "hm") genes <- biomaRt::getLDS(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = vals, mart = store$mart$hs, attributesL = "mgi_symbol", martL = store$mart$mm)
     })
     
     return(genes)
