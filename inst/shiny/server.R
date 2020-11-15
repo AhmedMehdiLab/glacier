@@ -266,14 +266,21 @@ server <- function(input, output, session) {
     else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
   })
   output$trans.out <- renderDataTable({
-    while (is.null(MART_HS)) MART_HS <- tryCatch(biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
-    while (is.null(MART_MM)) MART_MM <- tryCatch(biomaRt::useMart("ensembl", dataset = "mmusculus_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
-
-    genes <- ""
-    vals <- input_proc()$gene
-    if (length(vals) == 0) return(NULL)
-    if (input$trans == "mh") genes <- biomaRt::getLDS(attributes = "mgi_symbol", filters = "mgi_symbol", values = vals, mart = MART_MM, attributesL = "hgnc_symbol", martL = MART_HS)
-    if (input$trans == "hm") genes <- biomaRt::getLDS(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = vals, mart = MART_HS, attributesL = "mgi_symbol", martL = MART_MM)
+    withProgress(message = "Connecting to Ensembl", {
+      setProgress(value = 0, detail = "Retrieving Homo sapiens data")
+      while (is.null(MART_HS)) MART_HS <- tryCatch(biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
+      
+      setProgress(value = 0.5, detail = "Retrieving Mus musculus data")
+      while (is.null(MART_MM)) MART_MM <- tryCatch(biomaRt::useMart("ensembl", dataset = "mmusculus_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
+    })
+    
+    withProgress(message = "Converting genes", {
+      genes <- ""
+      vals <- input_proc()$gene
+      if (length(vals) == 0) return(NULL)
+      if (input$trans == "mh") genes <- biomaRt::getLDS(attributes = "mgi_symbol", filters = "mgi_symbol", values = vals, mart = MART_MM, attributesL = "hgnc_symbol", martL = MART_HS)
+      if (input$trans == "hm") genes <- biomaRt::getLDS(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = vals, mart = MART_HS, attributesL = "mgi_symbol", martL = MART_MM)
+    })
     
     return(genes)
   }, LARGE_DT)
