@@ -1,68 +1,73 @@
-library(shiny)
-library(shinyjs)
-library(shinyWidgets)
-
 library(glacier)
-
 requireNamespace("biomaRt")
+source("upload.R")
+
 library(dplyr)
 library(magrittr)
 library(purrr)
 library(readr)
+library(shiny)
+library(shinyjs)
+library(shinyWidgets)
 library(stringr)
 library(tibble)
 library(tools)
 
-# if pushing to shinyapps.io
-# devtools::install_github("AhmedMehdiLab/glacier")
-# setRepositories()
-# library(limma)
-# library(Seurat)
+EXAMPLE <- TRUE
+PRIVATE <- TRUE
+SHINYIO <- FALSE
 
-source("upload.R")
+if (SHINYIO) {
+  # devtools::install_github("AhmedMehdiLab/glacier")
+  # setRepositories()
+  
+  library(limma)
+  library(Seurat)
+}
 
 # options
-LOAD_EXAMPLES <- TRUE
-BARS_ANNO_MAX <- 80
-OVER_ANNO_MAX <- 80
-OVER_GENE_MAX <- 100
-DEBOUNCE_TIME <- 1000
+BARS_ANNO_MAX <- 60
+OVER_ANNO_MAX <- 60
+OVER_GENE_MAX <- 60
+DEBOUNCE_TIME <- 1500
 
-RAND_SEED <- 444
-LARGE_DT <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 235px)")
-SMALL_DT <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 220.3px)")
-DIM_RED <- c("Principal component analysis" = "pca", "Independent component analysis" = "ica", "t-distributed Stochastic Neighbor Embedding" = "tsne", "Uniform Manifold Approximation and Projection" = "umap")
-options(shiny.maxRequestSize = 5 * 1024 ^ 3)
+SEED <- 444
+DT_LARGE <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 235px)")
+DT_SMALL <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 220.3px)")
+DIMREDUC <- c("Principal component analysis" = "pca",
+              "Independent component analysis" = "ica",
+              "t-distributed Stochastic Neighbor Embedding" = "tsne",
+              "Uniform Manifold Approximation and Projection" = "umap")
+options(shiny.maxRequestSize = 5 * 1024 ^ 3) # 5 GiB max upload size
 
 server <- function(input, output, session) {
-  store <- reactiveValues(anno = list(), cell = list(), data = list(), mart = list(), proc = reactiveValues())
-  showNotification(str_c("Welcome to glacier (v", packageVersion("glacier"), ")!", collapse = ""), type = "message")
+  store <- reactiveValues(anno = list(), cell = list(), data = list(), mart = list(), note = list(), proc = reactiveValues())
+  showNotification(str_c("Welcome to glacier (", packageVersion("glacier"), ")!", collapse = ""), type = "message")
   
-  if (LOAD_EXAMPLES) isolate({
-    # if pushing to shinyapps.io
-    # store$anno$GEPATH <- readRDS("GEA.rds")
-    # store$anno[["MSigDB C7 example"]] <- readRDS("MSA.rds")
-    # store$data$GEPATH <- readRDS("GED.rds")
-    
-    # load private data
+  if (PRIVATE) isolate({
     store$anno$`E.PAGE` <- readRDS(system.file("extdata", "private", "epage_anno.rds", package = "glacier"))
     store$anno$`MSigDB C7` <- readRDS(system.file("extdata", "private", "msigdb_anno_orig.rds", package = "glacier"))
     store$anno$`MSigDB C7 (MODIFIED)` <- readRDS(system.file("extdata", "private", "msigdb_anno.rds", package = "glacier"))
     store$data$`E.PAGE` <- readRDS(system.file("extdata", "private", "epage_data.rds", package = "glacier"))
     store$data$`MSigDB 7.2` <- readRDS(system.file("extdata", "private", "msigdb_data.rds", package = "glacier"))
-    
-    # store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
-    # store$data$Example <- import_database(system.file("extdata", "ex_data.csv", package = "glacier"), ",", FALSE, c(2, 4), 0)
+  })
+  
+  if (SHINYIO) isolate({
+    store$anno$`E.PAGE` <- readRDS("EPAGE_A.rds")
+    store$anno$`MSigDB C7` <- readRDS("MSIG_A.rds")
+    store$data$`E.PAGE` <- readRDS("EPAGE_D.rds")
+  })
+  
+  if (EXAMPLE) isolate({
+    store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
+    store$data$Example <- import_database(system.file("extdata", "ex_data.csv", package = "glacier"), ",", FALSE, c(2, 4), 0)
     store$cell$Example <- readRDS(system.file("extdata", "ex_seurat.rds", package = "glacier"))
   })
   
   # process upload
   observeEvent(input$file.up, showModal(uploadUI("file")))
   uploadServer("file", reactive(input$file.up), store$proc)
-  observeEvent(input$confirm, {
-    store[[store$proc$type]][[store$proc$name]] <- store$proc$proc()
-    removeModal()
-  })
+  observeEvent(input$confirm, {store[[store$proc$type]][[store$proc$name]] <- store$proc$proc(); removeModal()})
   
   # primary controls
   observe(updateSelectInput(session, "anno.source", NULL, names(store$anno)))
@@ -119,15 +124,13 @@ server <- function(input, output, session) {
   
   # process data
   anno_proc <- reactive(glacier:::process_annotations(anno_raw(), info(), input$anno.types))
-  cell_proc <- reactive({
-    tryCatch(
-      process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "_all_") input$cell.compare, if (input$cell.cluster != "_inter_") "grp", if (!input$cell.cluster %in% c("_inter_", "_intra_")) input$cell.cluster),
-      error = function(e) tibble(gene = character(), value = numeric())
-    )
-  })
+  cell_proc <- reactive(tryCatch(
+    process_input_seurat(cell_raw(), input$cell.select, if (input$cell.compare != "_all_") input$cell.compare, if (input$cell.cluster != "_inter_") "grp", if (!input$cell.cluster %in% c("_inter_", "_intra_")) input$cell.cluster),
+    error = function(e) tibble(gene = character(), value = numeric())
+  ))
   data_proc <- reactive(glacier:::process_database(data_raw(), input$data.categories, input$data.organisms))
   text_proc <- reactive(input$input.text %>% process_input_text) %>% debounce(DEBOUNCE_TIME)
-  cell_reductions <- reactive(DIM_RED[DIM_RED %in% names(cell_raw()@reductions)])
+  cell_reductions <- reactive(DIMREDUC[DIMREDUC %in% names(cell_raw()@reductions)])
   input_proc <- reactive(if (input$input.source == "text") text_proc() else cell_proc())
   
   # derive data
@@ -139,21 +142,31 @@ server <- function(input, output, session) {
   data_sets <- reactive(data_proc()$gs_info$name)
   
   cell_gene_list <- reactive(if (input$cell.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
-  cell_anno_list <- reactive(calc_post() %>% filter(`Adjusted P-value` <= 0.05) %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
+  cell_anno_list <- reactive(calc_filt() %>% filter(`Adjusted P-value` <= 0.05) %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
   cell_anno_gene <- reactive(if (input$cell.anno == "") character() else cell_anno_list()[[input$cell.anno]] %>% str_sort(numeric = TRUE))
   
-  cont_sets <- reactive(
-    anno_proc()$gs_anno %>%
-      select("name") %>%
-      add_column("anno" = TRUE) %>%
-      full_join(
-        data_proc()$gs_info %>%
-          select("name") %>%
-          add_column("data" = TRUE)
-      ) %>%
-      transmute("Set" = str_replace_all(name, "_", ifelse(input$name.fix, " ", "_")), "Status" = ifelse(!is.na(anno) & !is.na(data), "OK", ifelse(is.na(anno), "Database only", "Annotations only")))
-  )
-  cont_input <- reactive(input_proc() %>% rename("Input" = "gene", "Value" = "value") %>% mutate("Recognised" = Input %in% data_list()))
+  cont_sets <- reactive({
+    anno_part <- anno_sets() %>% tibble(name = .) %>% add_column(anno = TRUE)
+    data_part <- data_sets() %>% tibble(name = .) %>% add_column(data = TRUE)
+    results <- anno_part %>% full_join(data_part) %>% transmute("Set" = str_replace_all(name, "_", ifelse(input$name.fix, " ", "_")), "Status" = ifelse(!is.na(anno) & !is.na(data), "OK", ifelse(is.na(anno), "Database only", "Annotations only")))
+    
+    if (all(results$Status == "OK")) removeNotification(store$note$overlap)
+    else if (is.null(store$note$overlap)) store$note$overlap <- showNotification("Gene set mismatch between annotations and database, check 'Quality' tab", duration = NULL, type = "warning")
+    return(results)
+  })
+  cont_input <- reactive({
+    results <- tryCatch(
+      input_proc() %>% rename(Input = "gene", Value = "value") %>% mutate(Recognised = Input %in% data_list()),
+      error = function(e) tibble(Input = character(), Value = numeric(), Recognised = logical())
+    )
+    
+    if (all(results$Recognised)) removeNotification(store$note$recognised)
+    else if (is.null(store$note$recognised)) store$note$recognised <- showNotification("Some genes were not recognised, check 'Quality' tab", duration = NULL, type = "warning")
+    
+    if (!any(is.na(results$Value)) || all(is.na(results$Value))) removeNotification(store$note$values)
+    else if (is.null(store$note$values)) store$note$values <- showNotification("Some genes do not have values, check 'Quality' tab", duration = NULL, type = "warning")
+    return(results)
+  })
   
   # primary information
   output$anno.count <- renderText(str_c(length(anno_sets()), " gene sets annotated\n", length(anno_list()), " unique annotations"))
@@ -161,20 +174,16 @@ server <- function(input, output, session) {
   output$data.count <- renderText(str_c(length(data_sets()), " gene sets loaded\n", length(data_list()), " unique genes"))
   output$input.count <- renderText(str_c(nrow(input_proc()), " unique genes\n", sum(cont_input()$Recognised), " genes recognised\n", sum(!is.na(cont_input()$Value)), " values entered"))
   
-  output$cont.anno <- renderDataTable(calc()$stats %>% select("Annotation"), SMALL_DT)
-  output$cont.sets <- renderDataTable(cont_sets(), SMALL_DT)
-  output$cont.cell <- renderDataTable(tibble(Seurat = rownames(cell_raw())), SMALL_DT)
-  output$cont.data <- renderDataTable(tibble(Database = data_list()), SMALL_DT)
-  output$cont.input <- renderDataTable(cont_input(), SMALL_DT)
+  output$cont.anno <- renderDataTable(calc()$stats %>% select("Annotation"), DT_SMALL)
+  output$cont.sets <- renderDataTable(cont_sets(), DT_SMALL)
+  output$cont.cell <- renderDataTable(tibble(Seurat = rownames(cell_raw())), DT_SMALL)
+  output$cont.data <- renderDataTable(tibble(Database = data_list()), DT_SMALL)
+  output$cont.input <- renderDataTable(cont_input(), DT_SMALL)
 
   # actions
   observe(updateSelectInput(session, "cell.anno", NULL, names(cell_anno_list())))
   observe(updateSelectInput(session, "cell.genes", NULL, cell_anno_gene(), head(cell_anno_gene(), 16)))
   observe(updateSelectInput(session, "cell.overview", NULL, cell_reductions()))
-  observeEvent(cont_sets(), {
-    removeNotification(store$note.overlap)
-    store$note.overlap <- if (!all(cont_sets()$Status == "OK")) showNotification("Gene sets of selected annotations and database do not match", duration = NULL, type = "warning")
-  })
   
   # compute data
   calc <- reactive({
@@ -185,10 +194,10 @@ server <- function(input, output, session) {
       setProgress(value = 0.8, detail = "Computing significance")
       post <- glacier:::calculate_post(pre$stats_pre, nrow(input_proc()), max(input$input.universe, universe()))
       
-      return(list(stats = post, matches = pre$matches))
+      list(stats = post, matches = pre$matches)
     })
   })
-  calc_post <- reactive({
+  calc_filt <- reactive({
     stats <- calc()$stats
     
     if (input$stat.sigonly) {
@@ -198,12 +207,12 @@ server <- function(input, output, session) {
     return(stats)
   })
   
-  bars_stat <- reactive(calc_post() %>% arrange(
+  bars_stat <- reactive(calc_filt() %>% arrange(
     if (input$bars.anno.order == "Annotation") str_to_lower(Annotation)
     else if (input$bars.anno.order %in% c("P-value", "Adjusted P-value")) .data[[input$bars.anno.order]]
     else desc(.data[[input$bars.anno.order]])
   ))
-  over_stat <- reactive(calc_post() %>% arrange(
+  over_stat <- reactive(calc_filt() %>% arrange(
     if (input$over.anno.order == "Annotation") str_to_lower(Annotation)
     else if (input$over.anno.order %in% c("P-value", "Adjusted P-value")) .data[[input$over.anno.order]]
     else desc(.data[[input$over.anno.order]])
@@ -241,7 +250,7 @@ server <- function(input, output, session) {
   observeEvent(over_anno_select(), auto_text_range("over.anno.select", OVER_ANNO_MAX, over_stat()$Annotation))
   observeEvent(over_gene_select(), auto_text_range("over.gene.select", OVER_GENE_MAX, over_input()$gene))
   observe(updateVarSelectInput(session, "info.columns", NULL, data_info(), names(data_info())))
-  observe(updateVarSelectInput(session, "stat.columns", NULL, calc_post(), names(calc_post())))
+  observe(updateVarSelectInput(session, "stat.columns", NULL, calc_filt(), names(calc_filt())))
   observe(toggleState("cell.gene.cluster", input$cell.gene.match))
   
   # crop data
@@ -255,7 +264,7 @@ server <- function(input, output, session) {
   # secondary information
   view_table <- function(table, cols, split) table %>% select(!!!cols) %>% mutate(across(!!split, str_replace_all, "_", ifelse(input$name.fix, " ", "_")))
   output$bars <- renderPlot(plot_stats(view_bars(), input$bars.value, input$bars.color, input$bars.value.trans, input$bars.color.trans, input$bars.anno.sort))
-  output$over <- renderPlot(plot_overlap(calc$matches, input$over.color, view_over_gene(), view_over(), input$over.color.trans))
+  output$over <- renderPlot(plot_overlap(calc()$matches, input$over.color, view_over_gene(), view_over(), input$over.color.trans))
   output$cell <- renderPlot(if (requireNamespace("Seurat", quietly = T)) Seurat::DimPlot(cell_raw(), reduction = input$cell.overview, label = T, repel = T))
   output$heat <- renderPlot({
     if (!requireNamespace("Seurat", quietly = T) || !length(view_cell_gene())) return(NULL)
@@ -264,7 +273,7 @@ server <- function(input, output, session) {
     if (input$cell.plot != "heat") feats <- unique(feats)
     
     width <- feats %>% length %>% sqrt %>% ceiling
-    sample <- subset(cell_raw(), downsample = input$cell.downsample, idents = view_cell_clust(), seed = RAND_SEED)
+    sample <- subset(cell_raw(), downsample = input$cell.downsample, idents = view_cell_clust(), seed = SEED)
     if (input$cell.plot == "dot") Seurat::DotPlot(sample, features = feats)
     else if (input$cell.plot == "feat") Seurat::FeaturePlot(sample, features = feats, ncol = width, label = TRUE, repel = TRUE)
     else if (input$cell.plot == "heat") Seurat::DoHeatmap(sample, features = feats)
@@ -273,7 +282,7 @@ server <- function(input, output, session) {
   })
   output$trans.out <- renderDataTable({
     withProgress(message = "Connecting to Ensembl", {
-      setProgress(value = 0, detail = "Retrieving Homo sapiens data")
+      setProgress(value = 0.1, detail = "Retrieving Homo sapiens data")
       while (is.null(store$mart$hs)) store$mart$hs <- tryCatch(biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"), error = function(e) {print("Retrying"); NULL})
       
       setProgress(value = 0.5, detail = "Retrieving Mus musculus data")
@@ -289,9 +298,9 @@ server <- function(input, output, session) {
     })
     
     return(genes)
-  }, LARGE_DT)
-  output$stat <- renderDataTable(view_table(calc_post(), input$stat.columns, "Annotation"), LARGE_DT)
-  output$info <- renderDataTable(view_table(data_info(), input$info.columns, "Gene Set"), LARGE_DT)
+  }, DT_LARGE)
+  output$stat <- renderDataTable(view_table(calc_filt(), input$stat.columns, "Annotation"), DT_LARGE)
+  output$info <- renderDataTable(view_table(data_info(), input$info.columns, "Gene Set"), DT_LARGE)
   
-  output$file.down <- downloadHandler("glacier_results.csv", . %>% write_csv(calc_post(), .))
+  output$file.down <- downloadHandler("glacier_results.csv", . %>% write_csv(calc_filt(), .))
 }

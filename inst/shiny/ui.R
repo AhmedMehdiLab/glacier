@@ -80,7 +80,6 @@ cellPane <- tabPanel(
   checkboxInput("cell.gene.cluster", "Group genes based on expression")
 )
 
-twoTable <- function(left, right) fluidRow(column(6, dataTableOutput(left)), column(6, dataTableOutput(right)))
 barsView <- tabPanel("Plot", icon = icon("stats", lib = "glyphicon"), plotOutput("bars", height = "calc(100vh - 132.5px)"))
 overView <- tabPanel("Overlap", icon = icon("equalizer", lib = "glyphicon"), plotOutput("over", height = "calc(100vh - 132.5px)"))
 cellView <- tabPanel("Cluster", icon = icon("screenshot", lib = "glyphicon"), plotOutput("cell", height = "calc(100vh - 132.5px)"))
