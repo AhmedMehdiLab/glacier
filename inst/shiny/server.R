@@ -161,7 +161,7 @@ server <- function(input, output, session) {
   output$data.count <- renderText(str_c(length(data_sets()), " gene sets loaded\n", length(data_list()), " unique genes"))
   output$input.count <- renderText(str_c(nrow(input_proc()), " unique genes\n", sum(cont_input()$Recognised), " genes recognised\n", sum(!is.na(cont_input()$Value)), " values entered"))
   
-  output$cont.anno <- renderDataTable(calc()$stats %>% select("Annotation" = "name"), SMALL_DT)
+  output$cont.anno <- renderDataTable(calc()$stats %>% select("Annotation"), SMALL_DT)
   output$cont.sets <- renderDataTable(cont_sets(), SMALL_DT)
   output$cont.cell <- renderDataTable(tibble(Seurat = rownames(cell_raw())), SMALL_DT)
   output$cont.data <- renderDataTable(tibble(Database = data_list()), SMALL_DT)
