@@ -80,10 +80,20 @@ cellPane <- tabPanel(
   checkboxInput("cell.gene.cluster", "Group genes based on expression")
 )
 
+scorePane <- tabPanel(
+  NULL, br(), icon = icon("scale", lib = "glyphicon"),
+  selectInput("score.type", "Type", c("Cluster scores" = "cluster", "Time-series" = "time")),
+  selectInput("score.style", "Style", c("Eigen expression" = "pca", "Partial least squares" = "pls", "Partial least squares discriminant analysis" = "plsda")),
+  selectInput("score.anno", "Annotation (adjusted P-value ≤ 0.05 only)", c("No annotations loaded" = "")),
+  checkboxInput("score.gene.match", "Restrict to genes in input", F), hr(),
+  selectInput("time.source", "Expression data", c("No expression data" = "")),
+)
+
 barsView <- tabPanel("Plot", icon = icon("stats", lib = "glyphicon"), plotOutput("bars", height = "calc(100vh - 132.5px)"))
 overView <- tabPanel("Overlap", icon = icon("equalizer", lib = "glyphicon"), plotOutput("over", height = "calc(100vh - 132.5px)"))
 cellView <- tabPanel("Cluster", icon = icon("screenshot", lib = "glyphicon"), plotOutput("cell", height = "calc(100vh - 132.5px)"))
 heatView <- tabPanel("Expression", icon = icon("fire", lib = "glyphicon"), plotOutput("heat", height = "calc(100vh - 132.5px)"))
+scoreView <- tabPanel("Scores", icon = icon("scale", lib = "glyphicon"), plotOutput("score", height = "calc(100vh - 432.5px)"), plotOutput("rocs", height = 300))
 statView <- tabPanel("Statistics", icon = icon("th", lib = "glyphicon"), dataTableOutput("stat"))
 contView <- tabPanel("Quality", icon = icon("ok", lib = "glyphicon"), fluidRow(
   column(2, dataTableOutput("cont.anno")), column(2, dataTableOutput("cont.data")),
@@ -95,8 +105,8 @@ ui <- fluidPage(
   theme = shinytheme("yeti"), useShinyjs(),
   titlePanel("glacier: Gene List Annotation, Calculation and Illustration of Enrichment in R"),
   sidebarLayout(
-    sidebarPanel(fluidRow(column(6, inputPane), column(6, tabsetPanel(type = "pills", homePane, etcPane, barsPane, overPane, cellPane)))),
-    mainPanel(tabsetPanel(barsView, overView, cellView, heatView, statView, contView, transView, infoView))
+    sidebarPanel(fluidRow(column(6, inputPane), column(6, tabsetPanel(type = "pills", homePane, etcPane, barsPane, overPane, cellPane, scorePane)))),
+    mainPanel(tabsetPanel(barsView, overView, cellView, heatView, scoreView, statView, contView, transView, infoView))
   ),
   tags$head(tags$style(".text-compare {height: calc(100vh - 170px); overflow-y: auto;}"))
 )

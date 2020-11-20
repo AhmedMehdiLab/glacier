@@ -1,4 +1,7 @@
 # glacier (development)
+## glacier 0.13.1
+* Added basic expression score visualisation
+
 ## glacier 0.13.0
 * Added gene name conversion functionality
 * Clean up quality control tabs

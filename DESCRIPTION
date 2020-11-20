@@ -1,6 +1,6 @@
 Package: glacier
 Title: Gene List Annotation, Calculation and Illustration of Enrichment in R
-Version: 0.13.0
+Version: 0.13.1
 Authors@R: 
     c(person(given = "Lilin",
              family = "Yang",
@@ -40,7 +40,9 @@ Suggests:
     htmltools (>= 0.5.0),
     knitr (>= 1.30),
     limma (>= 3.44.3),
+    mixOmics (>= 6.12.2),
     mockery (>= 0.4.2),
+    pROC (>= 1.16.2),
     Seurat (>= 3.2.1),
     shiny (>= 1.5.0),
     shinyjs (>= 2.0.0),

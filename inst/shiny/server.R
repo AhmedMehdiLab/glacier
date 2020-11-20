@@ -1,5 +1,6 @@
 library(glacier)
 requireNamespace("biomaRt")
+source("score.R")
 source("upload.R")
 
 library(dplyr)
@@ -41,15 +42,19 @@ DIMREDUC <- c("Principal component analysis" = "pca",
 options(shiny.maxRequestSize = 5 * 1024 ^ 3) # 5 GiB max upload size
 
 server <- function(input, output, session) {
-  store <- reactiveValues(anno = list(), cell = list(), data = list(), mart = list(), note = list(), proc = reactiveValues())
+  store <- reactiveValues(anno = list(), cell = list(), data = list(), mart = list(), note = list(), proc = reactiveValues(), time = list())
   showNotification(str_c("Welcome to glacier (", packageVersion("glacier"), ")!", collapse = ""), type = "message")
   
   if (PRIVATE) isolate({
     store$anno$`E.PAGE` <- readRDS(system.file("extdata", "private", "epage_anno.rds", package = "glacier"))
     store$anno$`MSigDB C7` <- readRDS(system.file("extdata", "private", "msigdb_anno_orig.rds", package = "glacier"))
     store$anno$`MSigDB C7 (MODIFIED)` <- readRDS(system.file("extdata", "private", "msigdb_anno.rds", package = "glacier"))
+    
     store$data$`E.PAGE` <- readRDS(system.file("extdata", "private", "epage_data.rds", package = "glacier"))
     store$data$`MSigDB 7.2` <- readRDS(system.file("extdata", "private", "msigdb_data.rds", package = "glacier"))
+    
+    store$cell$GSE150728_nano <- readRDS(system.file("extdata", "private", "GSE150728_cell.rds", package = "glacier"))
+    store$time$GSE150728 <- readRDS(system.file("extdata", "private", "GSE150728_time.rds", package = "glacier"))
   })
   
   if (SHINYIO) isolate({
@@ -73,6 +78,7 @@ server <- function(input, output, session) {
   observe(updateSelectInput(session, "anno.source", NULL, names(store$anno)))
   observe(updateSelectInput(session, "cell.source", NULL, names(store$cell)))
   observe(updateSelectInput(session, "data.source", NULL, names(store$data)))
+  observe(updateSelectInput(session, "time.source", NULL, names(store$time)))
   observe(toggleState("input.source", input$cell.source != ""))
   observe(toggleState("input.text", input$input.source == "text"))
   observe(if (input$input.source == "cell") updateTextAreaInput(session, "input.text", value = str_c(input_proc()$gene, input_proc()$value, sep = " \t", collapse = "\n")))
@@ -82,6 +88,7 @@ server <- function(input, output, session) {
   cell_raw <- reactive(if (requireNamespace("Seurat", quietly = T)) store$cell[[req(input$cell.source)]])
   data_raw <- reactive(store$data[[req(input$data.source)]])
   info_raw <- reactive(if (input$info.source == "anno") anno_raw() else data_raw()$gs_info)
+  time_raw <- reactive(store$time[[req(input$time.source)]])
   universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% c(input_proc()$gene) %>% unique %>% length)
   
   cell_group_name <- reactive(if ("grp" %in% names(cell_raw()@meta.data)) "grp" else "group")
@@ -145,6 +152,10 @@ server <- function(input, output, session) {
   cell_anno_list <- reactive(calc_filt() %>% filter(`Adjusted P-value` <= 0.05) %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
   cell_anno_gene <- reactive(if (input$cell.anno == "") character() else cell_anno_list()[[input$cell.anno]] %>% str_sort(numeric = TRUE))
   
+  score_gene_list <- reactive(if (input$score.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
+  score_anno_list <- reactive(calc_filt() %>% filter(`Adjusted P-value` <= 0.05) %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, score_gene_list())$genes) %>% compact())
+  score_anno_gene <- reactive(if (input$score.anno == "") character() else score_anno_list()[[input$score.anno]])
+  
   cont_sets <- reactive({
     anno_part <- anno_sets() %>% tibble(name = .) %>% add_column(anno = TRUE)
     data_part <- data_sets() %>% tibble(name = .) %>% add_column(data = TRUE)
@@ -184,6 +195,7 @@ server <- function(input, output, session) {
   observe(updateSelectInput(session, "cell.anno", NULL, names(cell_anno_list())))
   observe(updateSelectInput(session, "cell.genes", NULL, cell_anno_gene(), head(cell_anno_gene(), 16)))
   observe(updateSelectInput(session, "cell.overview", NULL, cell_reductions()))
+  observe(updateSelectInput(session, "score.anno", NULL, names(cell_anno_list())))
   
   # compute data
   calc <- reactive({
@@ -205,6 +217,25 @@ server <- function(input, output, session) {
     }
     
     return(stats)
+  })
+  scores_stat <- reactive({
+    if (!requireNamespace("mixOmics", quietly = T) ||
+        !requireNamespace("pROC", quietly = T)) {
+      return(NULL)
+    }
+    
+    if (input$score.type == "time" && input$time.source != "") func <- score_exp
+    else func <- score_seurat
+    
+    withProgress(message = "Calculating scores", {
+      if (input$score.type == "time") {
+        if (input$time.source != "") {
+          time_raw() %>% mutate(bin = cut_interval(timeM, 20)) %>% score_exp(intersect(score_anno_gene(), colnames(time_raw())))
+        }
+      } else {
+        cell_raw() %>% score_seurat(score_anno_gene())
+      }
+    })
   })
   
   bars_stat <- reactive(calc_filt() %>% arrange(
@@ -279,6 +310,35 @@ server <- function(input, output, session) {
     else if (input$cell.plot == "heat") Seurat::DoHeatmap(sample, features = feats)
     else if (input$cell.plot == "ridge") Seurat::RidgePlot(sample, features = feats, ncol = width)
     else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
+  })
+  output$score <- renderPlot({
+    if (input$score.type == "time") {
+      if (input$time.source != "") {
+        scores_stat() %>%
+          pluck("scores") %>%
+          score_summary(input$score.style, c("grp", "bin")) %>%
+          show_summary(input$score.anno, "bin")
+      }
+    } else {
+      scores_stat() %>%
+        pluck("scores") %>%
+        score_summary(input$score.style, c("grp", "seurat_clusters")) %>%
+        show_summary(input$score.anno, "seurat_clusters")
+    }
+  })
+  output$rocs <- renderPlot({
+    if (input$score.type == "time") {
+      if (input$time.source != "") {
+        scores_stat() %>%
+          pluck("rocs") %>%
+          add_column(cluster = 0) %>%
+          show_rocs(input$score.style)
+      }
+    } else {
+      scores_stat() %>%
+        pluck("rocs") %>%
+        show_rocs(input$score.style)
+    }
   })
   output$trans.out <- renderDataTable({
     withProgress(message = "Connecting to Ensembl", {
