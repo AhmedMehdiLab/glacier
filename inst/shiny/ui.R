@@ -69,8 +69,7 @@ overPane <- tabPanel(
 
 cellPane <- tabPanel(
   NULL, br(), icon = icon("screenshot", lib = "glyphicon"),
-  selectInput("cell.overview", "Overview plot", c("No Seurat data selected" = "")),
-  numericInput("cell.downsample", "Downsample", 500, 3), hr(),
+  selectInput("cell.overview", "Overview plot", c("No Seurat data selected" = "")), hr(),
   
   selectInput("cell.plot", "Expression plot", c("Dot Plot" = "dot", "Feature Plot" = "feat", "Heatmap" = "heat", "Ridge Plot" = "ridge", "Violin Plot" = "violin"), "feat"),
   selectInput("cell.anno", "Annotation (adjusted P-value ≤ 0.05 only)", c("No annotations loaded" = "")),
@@ -82,11 +81,12 @@ cellPane <- tabPanel(
 
 scorePane <- tabPanel(
   NULL, br(), icon = icon("scale", lib = "glyphicon"),
-  selectInput("score.type", "Type", c("Cluster scores" = "cluster", "Time-series" = "time")),
-  selectInput("score.style", "Style", c("Eigen expression" = "pca", "Partial least squares" = "pls", "Partial least squares discriminant analysis" = "plsda")),
+  selectInput("score.type", "Type", c("Cluster scores" = "cluster", "Expression" = "expr")),
+  selectInput("score.method", "Method", c("Eigen expression" = "pca", "Partial least squares" = "pls", "Partial least squares discriminant analysis" = "plsda")),
+  selectInput("score.style", "Style", c("Scatter plot" = "scatter", "Box plot" = "box", "Violin plot" = "violin")),
   selectInput("score.anno", "Annotation (adjusted P-value ≤ 0.05 only)", c("No annotations loaded" = "")),
   checkboxInput("score.gene.match", "Restrict to genes in input", F), hr(),
-  selectInput("time.source", "Expression data", c("No expression data" = "")),
+  selectInput("expr.source", "Expression data", c("No expression data" = "")),
 )
 
 barsView <- tabPanel("Plot", icon = icon("stats", lib = "glyphicon"), plotOutput("bars", height = "calc(100vh - 132.5px)"))

@@ -11,9 +11,9 @@ score_seurat <- function(seurat, genes) {
     cl_meta <- cluster@meta.data
     cl_meta$grp_lvl <- cl_meta$grp %>% factor %>% as.integer
     
-    cl_meta$pca <- pca(cl_data[genes, ], ncomp = 3)$loadings$X[, 1]
-    cl_meta$pls <- pls(t(cl_data[genes, ]), cl_meta$grp_lvl, ncomp = 10, mode = "regression")$variates$X[, 1]
-    cl_meta$plsda <- plsda(t(cl_data[genes, ]), cl_meta$grp_lvl, ncomp = 2)$variates$X[, 1]
+    cl_meta$pca <- pca(cl_data[genes, ])$loadings$X[, 1]
+    cl_meta$pls <- pls(t(cl_data[genes, ]), cl_meta$grp_lvl, mode = "regression")$variates$X[, 1]
+    cl_meta$plsda <- plsda(t(cl_data[genes, ]), cl_meta$grp_lvl)$variates$X[, 1]
     
     scores <- bind_rows(scores, cl_meta)
     rocs <- rocs %>%
@@ -30,15 +30,23 @@ score_exp <- function(expression, genes) {
   rocs <- tibble()
   
   expression$grp_lvl <- expression$grp %>% factor %>% as.integer
-  expression$pca <- pca(t(expression[, genes]), ncomp = 2)$loadings$X[, 1]
-  expression$pls <- pls(expression[, genes], expression$grp_lvl, ncomp = 2, mode = "regression")$variates$X[, 1]
-  expression$plsda <- plsda(expression[, genes], expression$grp_lvl, ncomp = 2, mode = "regression")$variates$X[, 1]
+  expression$pca <- pca(t(expression[, genes]))$loadings$X[, 1]
+  expression$pls <- pls(expression[, genes], expression$grp_lvl, mode = "regression")$variates$X[, 1]
+  expression$plsda <- plsda(expression[, genes], expression$grp_lvl, mode = "regression")$variates$X[, 1]
   
   rocs <- tibble(pca = multiclass.roc(grp_lvl ~ pca, data = expression)$auc %>% as.numeric,
                  pls = multiclass.roc(grp_lvl ~ pls, data = expression)$auc %>% as.numeric,
                  plsda = multiclass.roc(grp_lvl ~ plsda, data = expression)$auc %>% as.numeric)
   
   return(list(scores = expression, rocs = rocs))
+}
+
+show_boxplot <- function(scores, x, y, color, violin = FALSE) {
+  if (violin) geom <- geom_violin else geom <- geom_boxplot
+  ggplot(scores, aes(.data[[x]], .data[[y]])) +
+    geom(aes(colour = .data[[color]])) +
+    theme_classic() +
+    theme(legend.position = "top")
 }
 
 score_summary <- function(scores, variable, groups) {
@@ -54,7 +62,7 @@ show_summary <- function(summary, annotation, xaxis) {
   ggplot(summary, aes(x = .data[[xaxis]], y = mean, color = grp)) +
     geom_point() +
     geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.1) +
-    xlab("Seurat clusters") +
+    xlab(NULL) +
     ylab(str_c(annotation, "scores", sep = " ")) +
     theme_classic() +
     theme(legend.position = "top")
@@ -64,6 +72,8 @@ show_rocs <- function(rocs, variable) {
   rocs$cluster <- rocs$cluster %>% factor(., levels = .)
   
   ggplot(rocs, aes(x = cluster, y = .data[[variable]])) +
+    xlab("Bin") +
+    ylab("AUC") +
     geom_col() +
     ylim(0, 1) +
     theme_classic()

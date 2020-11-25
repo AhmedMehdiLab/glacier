@@ -32,7 +32,6 @@ OVER_ANNO_MAX <- 60
 OVER_GENE_MAX <- 60
 DEBOUNCE_TIME <- 1500
 
-SEED <- 444
 DT_LARGE <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 235px)")
 DT_SMALL <- list(dom = "tr", paging = F, scrollCollapse = T, scrollY = "calc(100vh - 220.3px)")
 DIMREDUC <- c("Principal component analysis" = "pca",
@@ -42,7 +41,7 @@ DIMREDUC <- c("Principal component analysis" = "pca",
 options(shiny.maxRequestSize = 5 * 1024 ^ 3) # 5 GiB max upload size
 
 server <- function(input, output, session) {
-  store <- reactiveValues(anno = list(), cell = list(), data = list(), mart = list(), note = list(), proc = reactiveValues(), time = list())
+  store <- reactiveValues(anno = list(), cell = list(), data = list(), mart = list(), note = list(), proc = reactiveValues(), expr = list())
   showNotification(str_c("Welcome to glacier (", packageVersion("glacier"), ")!", collapse = ""), type = "message")
   
   if (PRIVATE) isolate({
@@ -54,7 +53,7 @@ server <- function(input, output, session) {
     store$data$`MSigDB 7.2` <- readRDS(system.file("extdata", "private", "msigdb_data.rds", package = "glacier"))
     
     store$cell$GSE150728_nano <- readRDS(system.file("extdata", "private", "GSE150728_cell.rds", package = "glacier"))
-    store$time$GSE150728 <- readRDS(system.file("extdata", "private", "GSE150728_time.rds", package = "glacier"))
+    store$expr$GSE150728 <- readRDS(system.file("extdata", "private", "GSE150728_expr.rds", package = "glacier"))
   })
   
   if (SHINYIO) isolate({
@@ -78,7 +77,7 @@ server <- function(input, output, session) {
   observe(updateSelectInput(session, "anno.source", NULL, names(store$anno)))
   observe(updateSelectInput(session, "cell.source", NULL, names(store$cell)))
   observe(updateSelectInput(session, "data.source", NULL, names(store$data)))
-  observe(updateSelectInput(session, "time.source", NULL, names(store$time)))
+  observe(updateSelectInput(session, "expr.source", NULL, names(store$expr)))
   observe(toggleState("input.source", input$cell.source != ""))
   observe(toggleState("input.text", input$input.source == "text"))
   observe(if (input$input.source == "cell") updateTextAreaInput(session, "input.text", value = str_c(input_proc()$gene, input_proc()$value, sep = " \t", collapse = "\n")))
@@ -88,7 +87,7 @@ server <- function(input, output, session) {
   cell_raw <- reactive(if (requireNamespace("Seurat", quietly = T)) store$cell[[req(input$cell.source)]])
   data_raw <- reactive(store$data[[req(input$data.source)]])
   info_raw <- reactive(if (input$info.source == "anno") anno_raw() else data_raw()$gs_info)
-  time_raw <- reactive(store$time[[req(input$time.source)]])
+  expr_raw <- reactive(store$expr[[req(input$expr.source)]])
   universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% c(input_proc()$gene) %>% unique %>% length)
   
   cell_group_name <- reactive(if ("grp" %in% names(cell_raw()@meta.data)) "grp" else "group")
@@ -224,13 +223,10 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    if (input$score.type == "time" && input$time.source != "") func <- score_exp
-    else func <- score_seurat
-    
     withProgress(message = "Calculating scores", {
-      if (input$score.type == "time") {
-        if (input$time.source != "") {
-          time_raw() %>% mutate(bin = cut_interval(timeM, 20)) %>% score_exp(intersect(score_anno_gene(), colnames(time_raw())))
+      if (input$score.type == "expr") {
+        if (input$expr.source != "") {
+          expr_raw() %>% score_exp(intersect(score_anno_gene(), colnames(expr_raw())))
         }
       } else {
         cell_raw() %>% score_seurat(score_anno_gene())
@@ -304,7 +300,7 @@ server <- function(input, output, session) {
     if (input$cell.plot != "heat") feats <- unique(feats)
     
     width <- feats %>% length %>% sqrt %>% ceiling
-    sample <- subset(cell_raw(), downsample = input$cell.downsample, idents = view_cell_clust(), seed = SEED)
+    sample <- subset(cell_raw(), idents = view_cell_clust())
     if (input$cell.plot == "dot") Seurat::DotPlot(sample, features = feats)
     else if (input$cell.plot == "feat") Seurat::FeaturePlot(sample, features = feats, ncol = width, label = TRUE, repel = TRUE)
     else if (input$cell.plot == "heat") Seurat::DoHeatmap(sample, features = feats)
@@ -312,32 +308,42 @@ server <- function(input, output, session) {
     else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
   })
   output$score <- renderPlot({
-    if (input$score.type == "time") {
-      if (input$time.source != "") {
-        scores_stat() %>%
-          pluck("scores") %>%
-          score_summary(input$score.style, c("grp", "bin")) %>%
-          show_summary(input$score.anno, "bin")
+    score <- scores_stat() %>% pluck("scores")
+    
+    if (input$score.type == "expr") {
+      if (input$expr.source != "") {
+        if (input$score.style == "scatter") {
+          score %>%
+            score_summary(input$score.method, c("grp", "bin")) %>%
+            show_summary(input$score.anno, "bin")
+        }
+        else {
+          score %>% show_boxplot("bin", input$score.method, "grp", input$score.style == "violin")
+        }
       }
     } else {
-      scores_stat() %>%
-        pluck("scores") %>%
-        score_summary(input$score.style, c("grp", "seurat_clusters")) %>%
-        show_summary(input$score.anno, "seurat_clusters")
+      if (input$score.style == "scatter") {
+        score %>%
+          score_summary(input$score.method, c("grp", "seurat_clusters")) %>%
+          show_summary(input$score.anno, "seurat_clusters")
+      }
+      else {
+        score %>% show_boxplot("seurat_clusters", input$score.method, "grp", input$score.style == "violin")
+      }
     }
   })
   output$rocs <- renderPlot({
-    if (input$score.type == "time") {
-      if (input$time.source != "") {
+    if (input$score.type == "expr") {
+      if (input$expr.source != "") {
         scores_stat() %>%
           pluck("rocs") %>%
           add_column(cluster = 0) %>%
-          show_rocs(input$score.style)
+          show_rocs(input$score.method)
       }
     } else {
       scores_stat() %>%
         pluck("rocs") %>%
-        show_rocs(input$score.style)
+        show_rocs(input$score.method)
     }
   })
   output$trans.out <- renderDataTable({

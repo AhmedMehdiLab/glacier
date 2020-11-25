@@ -1,4 +1,12 @@
-RAND_SEED <- 444
+downsample <- function(seurat, factor, seed = 1) {
+  if (factor == 1) return(seurat)
+  number <- nrow(seurat@meta.data)
+  scaled <- round(number * factor)
+  
+  set.seed(seed)
+  select <- sample(colnames(seurat), scaled)
+  return(subset(seurat, cells = select))
+}
 
 uploadUI <- function(id) {ns <- NS(id)
   modalDialog(
@@ -11,18 +19,19 @@ uploadUI <- function(id) {ns <- NS(id)
     tags$style(str_glue("#{ns('anno')} {{height: 500px; overflow: auto;}}")),
     tags$style(str_glue("#{ns('cell')} {{height: 500px; overflow: auto;}}")),
     tags$style(str_glue("#{ns('data')} {{height: 500px; overflow: auto;}}")),
+    tags$style(str_glue("#{ns('expr')} {{height: 500px; overflow: auto;}}")),
     tags$style(str_glue("#{ns('gene')} {{height: 500px; overflow: auto;}}")),
     
     # interface
     fluidRow(
       column(3, h5("Options"),
-        selectInput(ns("type"), NULL, c("File type" = "", "Annotations" = "anno", "Database" = "data", "MSigDB XML" = "msig", "Seurat RDS" = "cell")),
+        selectInput(ns("type"), NULL, c("File type" = "", "Annotations" = "anno", "Database" = "data", "MSigDB XML" = "msig", "Seurat RDS" = "cell", "Expression data" = "expr")),
         textInput(ns("name"), NULL, placeholder = "File name"),
         selectInput(ns("delim"), NULL, c("Commas" = ",", "Tabs" = "\t")),
         checkboxInput(ns("header"), "File has header"),
         sliderInput(ns("content"), "Content columns", 1, 10, c(1, 10)),
         numericInput(ns("info"), "Description column", 0, 10, 1),
-        numericInput(ns("down"), "Downsample", 500, 1),
+        numericInput(ns("down"), "Downsample", 0.4, 0, 1),
         helpText("If no descriptions are available, set 'Description column' to 0"), br(),
         helpText("Please wait until preview has loaded before clicking 'Confirm'")),
       column(9, h5("Preview"),
@@ -52,7 +61,7 @@ uploadServer <- function(id, file, values) moduleServer(id,
       updateTextInput(session, "name", value = name)
       
       # parse data and update controls
-      if (input$type == "cell") proc <- reactive(subset(readRDS(path), downsample = input$down, seed = RAND_SEED))
+      if (input$type == "cell") proc <- reactive(downsample(readRDS(path), input$down))
       if (input$type == "msig") proc <- reactive(import_msigdb(path))
       if (is_delim) {
         temp <- reactive(glacier:::import_delim_path(path, input$delim, input$header))
@@ -61,6 +70,7 @@ uploadServer <- function(id, file, values) moduleServer(id,
         updateSliderInput(session, "content", NULL, c(1, cols), 1, cols)
         updateNumericInput(session, "info", NULL, 0, 0, cols)
       }
+      if (input$type == "expr") proc <- reactive(readRDS(path))
       
       # prepare preview
       if (input$type == "anno") {
@@ -69,6 +79,7 @@ uploadServer <- function(id, file, values) moduleServer(id,
       }
       if (input$type == "cell") output$preview <- renderUI(verbatimTextOutput(ns("cell")))
       if (input$type == "data") proc <- reactive(glacier:::import_database_file(temp(), input$content, input$info))
+      if (input$type == "expr") output$preview <- renderUI(tableOutput(ns("expr")))
       if (is_data) output$preview <- renderUI(tagList(column(6, tableOutput(ns("data"))), column(6, verbatimTextOutput(ns("gene")))))
       
       # update preview
@@ -78,6 +89,7 @@ uploadServer <- function(id, file, values) moduleServer(id,
       output$anno <- renderTable(proc() %>% head(16) %>% select(all_of(1:2), last_col(1:0)))
       output$cell <- renderText(str_c(capture.output(proc()[[]]), collapse = "\n"))
       output$data <- renderTable(proc()$gs_info %>% head(16))
+      output$expr <- renderTable(proc())
       output$gene <- renderText(str_c(capture.output(str(proc()$gs_genes, comp.str = NULL, give.attr = F, give.head = T, vec.len = 1, list.len = 22)), collapse = "\n"))
     })
   }
