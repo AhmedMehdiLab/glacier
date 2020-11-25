@@ -1,6 +1,10 @@
 # glacier (development)
+## glacier 0.14.0
+* New Seurat subset method
+* Refreshed Shiny UI
+
 ## glacier 0.13.1
-* Added basic expression score visualisation
+* Added basic expression score visualization
 
 ## glacier 0.13.0
 * Added gene name conversion functionality

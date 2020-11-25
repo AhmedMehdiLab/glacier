@@ -1,21 +1,16 @@
 Package: glacier
 Title: Gene List Annotation, Calculation and Illustration of Enrichment in R
-Version: 0.13.1
+Version: 0.14.0
 Authors@R: 
-    c(person(given = "Lilin",
-             family = "Yang",
-             role = c("aut", "cre"),
+    c(person("Lilin", "Yang", role = c("aut", "cre"),
              email = "lilin.yang@uq.net.au"),
-      person(given = "Ahmed",
-             family = "Mehdi",
-             role = "ctb",
-             email = "a.mehdi@imb.uq.edu.au"))
+      person("Ahmed", "Mehdi", role = "ctb", email = "a.mehdi@imb.uq.edu.au"))
 Description: A package to calculate and illustrate overlap statistics. Functions
     include those for importing .csv and .xml files describing gene set
     annotations and gene set contents; those for parsing gene name and gene
     value input from a text string; and those for calculating enrichment
-    statistics given the above. Additionally, functions for plotting said
-    statistics, as well as gene-annotation matches, are included.
+    statistics given the above. Functions for plotting said statistics, as well
+    as gene-annotation matches, are also included.
 Depends: R (>= 4.0.0)
 License: file LICENCE
 URL: https://github.com/AhmedMehdiLab/glacier
