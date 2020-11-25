@@ -17,6 +17,7 @@
 #' @param stats value from \code{\link{compute}}
 #' @param val_trans optional: value transformation, see \code{trans} argument in
 #'   \code{\link[ggplot2]{scale_continuous}}; default \code{"identity"}
+#' @param yaxis_pos optional: y axis position (left or right)
 #'
 #' @return ggplot2: heatmap of overlap
 #' @export
@@ -32,7 +33,7 @@
 #' input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
 #' results <- compute(input, anno, data)
 #' over <- plot_overlap(results$matches, "Gene Value", input, results$stats)
-plot_overlap <- function(matches, value, input, stats, val_trans = "identity") {
+plot_overlap <- function(matches, value, input, stats, val_trans = "identity", yaxis_pos = "left") {
   . <- NULL
   genes <- input$gene %>% factor(., levels = .)
   annos <- stats$Annotation %>% factor(., levels = .) %>% forcats::fct_rev()
@@ -55,19 +56,20 @@ plot_overlap <- function(matches, value, input, stats, val_trans = "identity") {
 
     if (gene %in% matches[[anno]]) data$Value[i] <- get_value(gene, anno)
   }
+  colnames(data)[3] <- value
 
   # plot data
   ggplot2::ggplot(
-    data, ggplot2::aes(.data$Gene, .data$Anno, fill = .data$Value)
+    data, ggplot2::aes(.data$Gene, .data$Anno, fill = .data[[value]])
   ) +
     ggplot2::geom_raster() +
-    ggplot2::labs(x = NULL, y = NULL) +
+    ggplot2::labs(x = "Gene", y = NULL) +
     ggplot2::scale_fill_gradientn(
       na.value = "transparent", trans = val_trans,
       colours = grDevices::hcl.colors(3, palette = "Blue-Red 2")
     ) +
     ggplot2::theme_classic() +
-    if (nrow(data) != 0) ggplot2::scale_x_discrete(position = "top")
+    if (nrow(data) != 0) ggplot2::scale_y_discrete(position = yaxis_pos)
 }
 
 #' Plot overlap statistics as a bar graph
@@ -107,7 +109,7 @@ plot_stats <- function(stats, value, color, val_trans = "identity",
   color <- rlang::sym(color)
 
   # order Y axis
-  if (sort_y) stats %<>% dplyr::arrange(dplyr::desc(!!value))
+  if (nrow(stats) != 0 && sort_y) stats %<>% dplyr::arrange(dplyr::desc(!!value))
   stats$Annotation %<>% factor(., levels = .) %>% forcats::fct_rev()
 
   # plot data
