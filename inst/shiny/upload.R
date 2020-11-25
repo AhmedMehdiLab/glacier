@@ -31,7 +31,7 @@ uploadUI <- function(id) {ns <- NS(id)
         checkboxInput(ns("header"), "File has header"),
         sliderInput(ns("content"), "Content columns", 1, 10, c(1, 10)),
         numericInput(ns("info"), "Description column", 0, 10, 1),
-        numericInput(ns("down"), "Downsample", 0.4, 0, 1),
+        sliderInput(ns("down"), "Downsample", 0, 100, 40, post = "%"),
         helpText("If no descriptions are available, set 'Description column' to 0"), br(),
         helpText("Please wait until preview has loaded before clicking 'Confirm'")),
       column(9, h5("Preview"),
@@ -61,7 +61,7 @@ uploadServer <- function(id, file, values) moduleServer(id,
       updateTextInput(session, "name", value = name)
       
       # parse data and update controls
-      if (input$type == "cell") proc <- reactive(downsample(readRDS(path), input$down))
+      if (input$type == "cell") proc <- reactive(downsample(readRDS(path), input$down / 100))
       if (input$type == "msig") proc <- reactive(import_msigdb(path))
       if (is_delim) {
         temp <- reactive(glacier:::import_delim_path(path, input$delim, input$header))
