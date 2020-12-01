@@ -4,14 +4,7 @@
 \alias{plot_stats}
 \title{Plot overlap statistics as a bar graph}
 \usage{
-plot_stats(
-  stats,
-  value,
-  color,
-  val_trans = "identity",
-  col_trans = "identity",
-  sort_y = FALSE
-)
+plot_stats(stats, value, color, sort_y = FALSE)
 }
 \arguments{
 \item{stats}{value from \code{\link{compute}}}
@@ -23,12 +16,6 @@ plot_stats(
 \item{color}{\code{"#gene sets"}, \code{"# genes"}, \code{"# matches"},
 \code{"P-value"}, \code{"Adjusted P-value"}, \code{"Odds Ratio"},
 \code{"Fold Enrichment"} or \code{"Adjusted Fold Enrichment"}}
-
-\item{val_trans}{optional: value transformation, see \code{trans} argument in
-\code{\link[ggplot2]{scale_continuous}}; default \code{"identity"}}
-
-\item{col_trans}{optional: color transformation, see \code{trans} argument in
-\code{\link[ggplot2]{scale_continuous}}; default \code{"identity"}}
 
 \item{sort_y}{whether to sort annotations by \code{value}}
 }
@@ -44,7 +31,7 @@ data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
 anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 
-input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 results <- compute(input, anno, data)
 stat <- plot_stats(results$stats, 'Fold Enrichment', 'Adjusted P-value')
 }

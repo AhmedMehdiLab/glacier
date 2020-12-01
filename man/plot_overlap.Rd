@@ -4,7 +4,7 @@
 \alias{plot_overlap}
 \title{Plot gene-annotation matches as heatmap}
 \usage{
-plot_overlap(matches, value, input, stats, val_trans = "identity")
+plot_overlap(matches, value, input, stats, xpos = "bottom")
 }
 \arguments{
 \item{matches}{value from \code{\link{compute}}}
@@ -20,8 +20,7 @@ from \code{stats}}
 
 \item{stats}{value from \code{\link{compute}}}
 
-\item{val_trans}{optional: value transformation, see \code{trans} argument in
-\code{\link[ggplot2]{scale_continuous}}; default \code{"identity"}}
+\item{xpos}{x axis position, "top" or "bottom"}
 }
 \value{
 ggplot2: heatmap of overlap
@@ -39,7 +38,7 @@ data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
 anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 
-input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 results <- compute(input, anno, data)
 over <- plot_overlap(results$matches, "Gene Value", input, results$stats)
 }

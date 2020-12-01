@@ -54,6 +54,6 @@ data_path <- system.file("extdata", "ex_data.csv", package = "glacier")
 anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 
-input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 results <- compute(input, anno, data)
 }

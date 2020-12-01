@@ -4,7 +4,7 @@
 \alias{calculate}
 \title{Calculate overlap statistics}
 \usage{
-calculate(input, annos, gs_annos, gs_genes, universe)
+calculate(input, annos, gs_annos, gs_genes, universe = NULL)
 }
 \arguments{
 \item{input}{output of \code{\link{process_input_text}} or
