@@ -55,3 +55,35 @@ test_that("function 'plot_stats' does not crash", {
   expect_error(plot_stats(stats$stats, "# genes", "P-value"), NA)
   expect_error(plot_stats(stats$stats, "# genes", "P-value", sort_y = T), NA)
 })
+
+test_that("function 'plot_scores' does not crash", {
+  seu_path <- system.file("extdata", "ex_seurat.rds", package = "glacier")
+  exp_path <- system.file("extdata", "ex_expr.rds", package = "glacier")
+  seurat <- readRDS(seu_path)
+  exp <- readRDS(exp_path)
+  
+  seu_results <- score_seurat(seurat, "grp", c("APOE", "CTSZ"))
+  exp_results <- score_expr(exp, "grp", c("APOE", "CTSZ"))
+  
+  expect_error(plot_scores(seu_results$scores, "seurat_clusters", "pca", "grp", "whiskers"), NA)
+  expect_error(plot_scores(exp_results$scores, "bin", "pca", "grp", "whiskers"), NA)
+  
+  expect_error(plot_scores(seu_results$scores, "seurat_clusters", "pca", "grp", "box"), NA)
+  expect_error(plot_scores(exp_results$scores, "bin", "pca", "grp", "box"), NA)
+  
+  expect_error(plot_scores(seu_results$scores, "seurat_clusters", "pca", "grp", "violin"), NA)
+  expect_error(plot_scores(exp_results$scores, "bin", "pca", "grp", "violin"), NA)
+})
+
+test_that("function 'plot_auc' does not crash", {
+  seu_path <- system.file("extdata", "ex_seurat.rds", package = "glacier")
+  exp_path <- system.file("extdata", "ex_expr.rds", package = "glacier")
+  seurat <- readRDS(seu_path)
+  exp <- readRDS(exp_path)
+  
+  seu_results <- score_seurat(seurat, "grp", c("APOE", "CTSZ"))
+  exp_results <- score_expr(exp, "grp", c("APOE", "CTSZ"))
+  
+  expect_error(plot_auc(seu_results$aucs, "pca"), NA)
+  expect_error(plot_auc(exp_results$aucs, "pca"), NA)
+})
