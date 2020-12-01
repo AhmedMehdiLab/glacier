@@ -28,7 +28,7 @@
 #' anno <- import_annotations(anno_path, ",", TRUE, c(2, 4), 5)
 #' data <- import_database(data_path, ",", FALSE, c(2, 4), 0)
 #'
-#' input <- process_input_text('CYP1A1 0.2 CYP1B1 NQO1 0.3 SODD 9.0')
+#' input <- process_input_text("FCN1 0.1 FTL 0.8 CLU 0.05")
 #' results <- compute(input, anno, data)
 compute <- function(input, anno, data, universe = NULL, info_from = "database",
                     anno_opts = "file", categories = FALSE, organisms = FALSE,
@@ -54,19 +54,10 @@ compute <- function(input, anno, data, universe = NULL, info_from = "database",
 #' @examples
 #' vignette("web-app", package = "glacier")
 webstart <- function() {
-  if (!requireNamespace("shiny", quietly = F) ||
-      !requireNamespace("shinyjs", quietly = F) ||
-      !requireNamespace("shinythemes", quietly = F) ||
-      !requireNamespace("shinyWidgets", quietly = F))
-    stop("Packages 'shiny', 'shinyjs', 'shinythemes' and 'shinyWidgets' are \
-         required for this feature")
-
-  if (!requireNamespace("Seurat", quietly = F))
-    warning("Package 'Seurat' is required for single-cell analysis")
-
-  if (!requireNamespace("limma", quietly = F))
-    message("Package 'limma' from Bioconductor is recommended to accelerate \
-            single-cell analysis")
+  uses(c("shiny", "shinyjs", "shinythemes", "shinyWidgets"), stop,
+       "'shiny', 'shinyjs', 'shinythemes' and 'shinyWidgets' are required")
+  uses("Seurat", warning, "'Seurat' is required to handle Seurat data")
+  uses("limma", message, "'limma' is recommended to accelerate analysis")
 
   shiny::runApp(system.file("shiny", package = "glacier"),
                 host = "0.0.0.0",

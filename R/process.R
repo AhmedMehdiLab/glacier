@@ -159,8 +159,7 @@ process_input_text <- function(text) {
 #' input <- process_input_seurat(seurat, 0)
 process_input_seurat <- function(seurat, id_1, id_2 = NULL, group = NULL,
                                  cluster = NULL, max_p = 0.05) {
-  if (!requireNamespace("Seurat", quietly = T))
-    stop("Package 'Seurat' is required for this feature")
+  uses("Seurat", stop, "'Seurat' is required for this feature")
   if (!is.null(id_2) && id_1 == id_2)
     return(tibble::tibble(gene = character(), value = numeric()))
 
@@ -350,7 +349,7 @@ calculate_post <- function(stats_pre, input_size, universe) {
 #' calc <- calculate(input, anno_proc$annos, anno_proc$gs_annos,
 #'                   data_proc$gs_genes)
 #' }
-calculate <- function(input, annos, gs_annos, gs_genes, universe) {
+calculate <- function(input, annos, gs_annos, gs_genes, universe = NULL) {
   if (is.null(universe)) universe <- gs_genes %>%
       unlist(use.names = F) %>%
       c(input$gene) %>%
