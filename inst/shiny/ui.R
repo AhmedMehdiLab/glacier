@@ -4,7 +4,7 @@ library(shinythemes)
 
 inputPane <- tagList(
   selectInput("input.source", "Source", c("Text Input" = "text", "Seurat" = "cell")),
-  textAreaInput("input.text", NULL, resize = "vertical", height = "calc(100vh - 431px)", placeholder = "GENENAME 0.1\n..."),
+  textAreaInput("input.text", NULL, resize = "vertical", height = "calc(100vh - 431px)", placeholder = "GENE1 0.1\nGENE2 0.05\n..."),
   verbatimTextOutput("count", TRUE),
   numericInput("input.universe", "Genes in universe", 0, 0)
 )
@@ -19,12 +19,15 @@ homePane <- tabPanel(
   selectInput("data.categories", NULL, c("Filter categories" = ""), multiple = TRUE),
   selectInput("data.organisms", NULL, c("Filter organisms" = ""), multiple = TRUE),
   
-  selectInput("cell.source", "Seurat data", c("No Seurat data" = "")),
+  selectInput("cell.source", "Seurat", c("No Seurat data" = "")),
   selectInput("cell.cluster", NULL, c("Inter-cluster" = "_inter_")),
+  selectInput("cell.group", NULL, c("No groups" = "")),
   selectInput("cell.select", NULL, c("No clusters" = "")),
   selectInput("cell.compare", NULL, c("No clusters" = "")),
   
-  selectInput("expr.source", "Expression data", c("No expression data" = ""))
+  selectInput("expr.source", "Expression", c("No expression data" = "")),
+  
+  selectInput("conv", "Convert", c("(none)" = "", "Human to mouse" = "hm", "Mouse to human" = "mh"))
 )
 
 etcPane <- tabPanel(
@@ -36,8 +39,6 @@ etcPane <- tabPanel(
   varSelectizeInput("info.columns", "Information", NULL, multiple = T, options = list(placeholder = "Select columns to display")),
   varSelectizeInput("stat.columns", "Statistics", NULL, multiple = T, options = list(placeholder = "Select columns to display")), hr(),
   
-  selectInput("trans", "Transform symbols", c("(none)" = "", "Human to mouse" = "hm", "Mouse to human" = "mh")), hr(),
-  
   p("MSigDB XML files available ", a("here", href = "https://data.broadinstitute.org/gsea-msigdb/msigdb/release/")),
   fileInput("file.up", NULL, buttonLabel = "Upload..."),
   downloadButton("file.down", "Download", class = "wide"),
@@ -46,16 +47,16 @@ etcPane <- tabPanel(
 
 plotPane <- tabPanel(
   NULL, br(), icon = icon("stats", lib = "glyphicon"),
-  selectInput("plot.anno.order", "Order", c("Annotation", "# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment")),
-  uiOutput("plot.anno.select"), hr(),
+  selectInput("bars.value", "Plot value", c("# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment"), selected = "Fold Enrichment"),
+  selectInput("bars.color", "Plot color", c("# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment"), selected = "Adjusted P-value"),
+  selectInput("bars.anno.order", "Plot order", c("Annotation", "# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment")),
+  uiOutput("bars.anno.select"),
+  checkboxInput("bars.anno.sort", "Sort plot by value"), hr(),
   
-  selectInput("bars.value", "Value", c("# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment"), selected = "Fold Enrichment"),
-  selectInput("bars.color", "Color", c("# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment"), selected = "Adjusted P-value"),
-  checkboxInput("bars.anno.sort", "Sort plot by value"),
-  
-  hr(),
-  selectInput("over.color", "Overlap", c("Gene Value", "# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment"), "Adjusted P-value"),
+  selectInput("over.color", "Overlap color", c("Gene Value", "# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment"), "Adjusted P-value"),
   helpText("Selecting Gene Value, Odds Ratio, Fold Enrichment or Adjusted Fold Enrichment options may hide matches"), br(),
+  selectInput("over.anno.order", "Annotation order", c("Annotation", "# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment")),
+  uiOutput("over.anno.select"),
   selectInput("over.gene.order", "Gene order", c("As entered" = "input", "Gene name" = "names", "Gene value" = "value")),
   uiOutput("over.gene.select")
 )
@@ -74,16 +75,15 @@ cellPane <- tabPanel(
 
 scorePane <- tabPanel(
   NULL, br(), icon = icon("scale", lib = "glyphicon"),
-  selectInput("score.type", "Type", c("Cluster scores" = "cluster", "Expression" = "expr")),
+  selectInput("score.type", "Type", c("(none)" = "")),
   selectInput("score.method", "Method", c("Eigen expression" = "pca", "Partial least squares" = "pls", "Partial least squares discriminant analysis" = "plsda")),
-  selectInput("score.style", "Style", c("Scatter plot" = "scatter", "Box plot" = "box", "Violin plot" = "violin")),
+  selectInput("score.plot", "Plot", c("Scatter plot" = "whiskers", "Box plot" = "box", "Violin plot" = "violin")),
   selectInput("score.anno", "Annotation", c("No annotations loaded" = "")),
   checkboxInput("score.gene.match", "Restrict to genes in input")
 )
 
-plotView <- tabPanel("Plot", icon = icon("stats", lib = "glyphicon"), fluidRow(
-  column(5, plotOutput("over", height = "calc(100vh - 132.5px)"), style = "padding-right: 0px;"),
-  column(7, plotOutput("bars", height = "calc(100vh - 132.5px)"), style = "padding-left: 0px;")))
+barsView <- tabPanel("Plot", icon = icon("stats", lib = "glyphicon"), plotOutput("bars", height = "calc(100vh - 132.5px)"))
+overView <- tabPanel("Overlap", icon = icon("equalizer", lib = "glyphicon"), plotOutput("over", height = "calc(100vh - 132.5px)"))
 cellView <- tabPanel("Cluster", icon = icon("screenshot", lib = "glyphicon"), plotOutput("cell", height = "calc(100vh - 132.5px)"))
 heatView <- tabPanel("Expression", icon = icon("fire", lib = "glyphicon"), plotOutput("heat", height = "calc(100vh - 132.5px)"))
 scoreView <- tabPanel("Scores", icon = icon("scale", lib = "glyphicon"), plotOutput("score", height = "calc(100vh - 432.5px)"), plotOutput("rocs", height = 300))
@@ -91,7 +91,7 @@ statView <- tabPanel("Statistics", icon = icon("th", lib = "glyphicon"), dataTab
 contView <- tabPanel("Quality", icon = icon("ok", lib = "glyphicon"), fluidRow(
   column(2, dataTableOutput("cont.anno")), column(2, dataTableOutput("cont.data")),
   column(2, dataTableOutput("cont.cell")), column(3, dataTableOutput("cont.sets")), column(3, dataTableOutput("cont.input"))))
-transView <- tabPanel("Transform", icon = icon("transfer", lib = "glyphicon"), dataTableOutput("trans.out"))
+convView <- tabPanel("Convert", icon = icon("transfer", lib = "glyphicon"), dataTableOutput("conv"))
 infoView <- tabPanel("Information", icon = icon("info-sign", lib = "glyphicon"), dataTableOutput("info"))
 
 ui <- fluidPage(
@@ -99,7 +99,7 @@ ui <- fluidPage(
   titlePanel("glacier: Gene List Annotation, Calculation and Illustration of Enrichment in R"),
   sidebarLayout(
     sidebarPanel(fluidRow(column(6, inputPane), column(6, tabsetPanel(type = "pills", homePane, etcPane, plotPane, cellPane, scorePane)))),
-    mainPanel(tabsetPanel(plotView, cellView, heatView, scoreView, statView, contView, transView, infoView))
+    mainPanel(tabsetPanel(barsView, overView, cellView, heatView, scoreView, statView, convView, contView, infoView))
   ),
   tags$head(tags$style(".text-compare {height: calc(100vh - 170px); overflow-y: auto;}"))
 )
