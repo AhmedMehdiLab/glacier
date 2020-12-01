@@ -1,4 +1,10 @@
 # glacier (development)
+## glacier 0.15.0
+* Numerous bug fixes
+* Updated Shiny UI
+* Promoted score calculation to main package
+* Updated tests
+
 ## glacier 0.14.0
 * New Seurat subset method
 * Refreshed Shiny UI
