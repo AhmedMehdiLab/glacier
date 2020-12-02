@@ -18,6 +18,9 @@ EXAMPLE <- TRUE
 PRIVATE <- TRUE
 SHINYIO <- FALSE
 
+POSITIVE <- "Yes"
+NEGATIVE <- ""
+
 if (SHINYIO) {
   # devtools::install_github("AhmedMehdiLab/glacier")
   # setRepositories()
@@ -39,6 +42,14 @@ REDUCTIONS <- c("Principal component analysis" = "pca",
               "t-distributed Stochastic Neighbor Embedding" = "tsne",
               "Uniform Manifold Approximation and Projection" = "umap")
 options(shiny.maxRequestSize = 5 * 1024 ^ 3) # 5 GiB max upload size
+
+sym_unify <- function(..., .true = T, .false = F) {
+  data <- list(...)
+  syms <- tibble::tibble(Symbol = unique(unlist(data, use.names = FALSE)))
+  
+  for (name in names(data)) syms[[name]] <- ifelse(syms$Symbol %in% data[[name]], .true, .false)
+  return(syms)
+}
 
 server <- function(input, output, session) {
   showNotification(str_c("Welcome to glacier (", packageVersion("glacier"), ")!", collapse = ""), type = "message")
@@ -151,7 +162,13 @@ server <- function(input, output, session) {
   data_proc <- reactive(glacier:::process_database(data_raw(), input$data.categories, input$data.organisms))
   text_proc <- reactive(input$input.text %>% process_input_text) %>% debounce(DEBOUNCE_TIME)
   cell_reductions <- reactive(REDUCTIONS[REDUCTIONS %in% names(cell_raw()@reductions)])
-  input_proc <- reactive(if (input$input.source == "text") text_proc() else cell_proc())
+  input_proc <- reactive({
+    input <- if (input$input.source == "text") text_proc() else cell_proc()
+    
+    if (!any(is.na(input$value)) || all(is.na(input$value))) removeNotification(store$note$values)
+    else if (is.null(store$note$values)) store$note$values <- showNotification("Some genes do not have values, check 'Quality' tab", duration = NULL, type = "warning")
+    return(input)
+  })
   
   # process [4]: derive values from processed data
   anno_list <- reactive(tryCatch(anno_proc()$annos %>% str_subset(input$anno.regex) %>% as.character, error = function(e) character()))
@@ -166,39 +183,34 @@ server <- function(input, output, session) {
   cell_anno_list <- reactive(stats() %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
   cell_anno_gene <- reactive(if (input$cell.anno == "") character() else cell_anno_list()[[input$cell.anno]] %>% str_sort(numeric = TRUE))
 
-  score_gene_list <- reactive({
-    genes <- if (input$score.type == "cell") cell_gene() else if (input$score.type == "expr") expr_gene()
-    if (input$score.gene.match) intersect(input_proc()$gene, genes) else genes
-  })
-  score_anno_list <- reactive(stats() %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, score_gene_list())) %>% compact())
+  score_anno_list <- reactive(stats() %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes)) %>% compact())
   score_anno_gene <- reactive({if (input$score.anno == "") character() else score_anno_list()[[input$score.anno]]$genes})
 
   cont_sets <- reactive({
-    anno_part <- anno_sets() %>% tibble(name = .) %>% add_column(anno = TRUE)
-    data_part <- data_sets() %>% tibble(name = .) %>% add_column(data = TRUE)
-    results <- anno_part %>% full_join(data_part) %>% transmute("Set" = str_replace_all(name, "_", ifelse(input$name.fix, " ", "_")), "Status" = ifelse(!is.na(anno) & !is.na(data), "OK", ifelse(is.na(anno), "Database only", "Annotations only")))
-
-    if (all(results$Status == "OK")) removeNotification(store$note$overlap)
+    sets <- sym_unify(Annotations = anno_sets(), Database = data_sets(), .true = POSITIVE, .false = NEGATIVE) %>%
+      mutate(`Gene Set` = str_replace_all(Symbol, "_", ifelse(input$name.fix, " ", "_")), .keep = "unused") %>%
+      select(`Gene Set`, Annotations, Database)
+    
+    if (all(sets[-1] == POSITIVE)) removeNotification(store$note$overlap)
     else if (is.null(store$note$overlap)) store$note$overlap <- showNotification("Gene set mismatch between annotations and database, check 'Quality' tab", duration = NULL, type = "warning")
-    return(results)
+    return(sets)
   })
-  cont_input <- reactive({
-    results <- tryCatch(
-      input_proc() %>% rename(Input = "gene", Value = "value") %>% mutate(Recognised = Input %in% data_list()),
-      error = function(e) tibble(Input = character(), Value = numeric(), Recognised = logical())
-    )
-
-    if (all(results$Recognised)) removeNotification(store$note$recognised)
+  cont_gene <- reactive({
+    sym_unify(Database = data_list(), Seurat = cell_gene(), Input = input_proc()$gene,
+              Value = input_proc() %>% filter(!is.na(value)) %>% pull(gene),
+              .true = POSITIVE, .false = NEGATIVE) %>% rename(Gene = Symbol)
+  })
+  input_recognised <- reactive({
+    number <- cont_gene() %>% filter((Input == POSITIVE) & (Database == POSITIVE)) %>% nrow
+    
+    if (number == nrow(input_proc())) removeNotification(store$note$recognised)
     else if (is.null(store$note$recognised)) store$note$recognised <- showNotification("Some genes were not recognised, check 'Quality' tab", duration = NULL, type = "warning")
-
-    if (!any(is.na(results$Value)) || all(is.na(results$Value))) removeNotification(store$note$values)
-    else if (is.null(store$note$values)) store$note$values <- showNotification("Some genes do not have values, check 'Quality' tab", duration = NULL, type = "warning")
-    return(results)
+    return(number)
   })
 
   # display [1]: input counts
   output$count <- renderText(str_c(
-    "Input:      ", sum(cont_input()$Recognised), " / ", nrow(input_proc()), " : ", sum(!is.na(cont_input()$Value)), "\n",
+    "Input:      ", input_recognised(), " / ", nrow(input_proc()), " : ", sum(!is.na(input_proc()$value)), "\n",
     "Annotation: ", length(anno_sets()), " : ", length(anno_list()), "\n",
     "Database:   ", length(data_sets()), " : ", length(data_list()), "\n",
     "Seurat:     ", nrow(cell_raw()), " × ", ncol(cell_raw()), " : ", length(cell_clusts()), "\n",
@@ -207,9 +219,7 @@ server <- function(input, output, session) {
 
   output$cont.anno <- renderDataTable(stats_raw()$stats %>% select("Annotation"), DT_SMALL)
   output$cont.sets <- renderDataTable(cont_sets(), DT_SMALL)
-  output$cont.cell <- renderDataTable(tibble(Seurat = rownames(cell_raw())), DT_SMALL)
-  output$cont.data <- renderDataTable(tibble(Database = data_list()), DT_SMALL)
-  output$cont.input <- renderDataTable(cont_input(), DT_SMALL)
+  output$cont.gene <- renderDataTable(cont_gene(), DT_SMALL)
 
   # controls [3]: display configuration
   observe(updateSelectInput(session, "cell.anno", NULL, names(cell_anno_list())))

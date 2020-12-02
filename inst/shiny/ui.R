@@ -89,8 +89,9 @@ heatView <- tabPanel("Expression", icon = icon("fire", lib = "glyphicon"), plotO
 scoreView <- tabPanel("Scores", icon = icon("scale", lib = "glyphicon"), plotOutput("score", height = "calc(100vh - 432.5px)"), plotOutput("rocs", height = 300))
 statView <- tabPanel("Statistics", icon = icon("th", lib = "glyphicon"), dataTableOutput("stat"))
 contView <- tabPanel("Quality", icon = icon("ok", lib = "glyphicon"), fluidRow(
-  column(2, dataTableOutput("cont.anno")), column(2, dataTableOutput("cont.data")),
-  column(2, dataTableOutput("cont.cell")), column(3, dataTableOutput("cont.sets")), column(3, dataTableOutput("cont.input"))))
+  column(3, dataTableOutput("cont.anno")),
+  column(4, dataTableOutput("cont.sets")),
+  column(5, dataTableOutput("cont.gene"))))
 convView <- tabPanel("Convert", icon = icon("transfer", lib = "glyphicon"), dataTableOutput("conv"))
 infoView <- tabPanel("Information", icon = icon("info-sign", lib = "glyphicon"), dataTableOutput("info"))
 
