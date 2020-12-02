@@ -15,7 +15,7 @@ library(tibble)
 library(tools)
 
 EXAMPLE <- TRUE
-PRIVATE <- FALSE
+PRIVATE <- TRUE
 SHINYIO <- FALSE
 
 if (SHINYIO) {
@@ -306,7 +306,7 @@ server <- function(input, output, session) {
     plot_overlap(matches(), input$over.color, view_over_gene(), view_over(), "top") +
       xlab(NULL) + ylab(NULL) +
       scale_fill_gradientn(na.value = "transparent", colours = grDevices::hcl.colors(3, palette = "Blue-Red 2")) +
-      theme_classic()
+      theme_classic() + theme(axis.text.x = element_text(angle = 90, hjust = 0, vjust = 0.5))
   })
   output$cell <- renderPlot(if (requireNamespace("Seurat", quietly = T)) Seurat::DimPlot(cell_raw(), reduction = input$cell.overview, label = T, repel = T))
   output$heat <- renderPlot({
