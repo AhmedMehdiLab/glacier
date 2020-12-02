@@ -83,8 +83,8 @@ uploadServer <- function(id, file, values) moduleServer(id,
       if (is_data) output$preview <- renderUI(tagList(column(6, tableOutput(ns("data"))), column(6, verbatimTextOutput(ns("gene")))))
       
       # update preview
-      values$name <- input$name
-      values$type <- if (input$type == "msig") "data" else input$type
+      values$name <- reactive(input$name)
+      values$type <- reactive(if (input$type == "msig") "data" else input$type)
       values$proc <- reactive(proc())
       output$anno <- renderTable(proc() %>% head(16) %>% select(all_of(1:2), last_col(1:0)))
       output$cell <- renderText(str_c(capture.output(proc()[[]]), collapse = "\n"))

@@ -77,7 +77,7 @@ server <- function(input, output, session) {
   # process upload
   observeEvent(input$file.up, showModal(uploadUI("file")))
   uploadServer("file", reactive(input$file.up), store$file)
-  observeEvent(input$confirm, {store[[store$file$type]][[store$file$name]] <- store$file$proc(); removeModal()})
+  observeEvent(input$confirm, {store[[store$file$type()]][[store$file$name()]] <- store$file$proc(); removeModal()})
 
   # controls [1]: source selection
   observe(updateSelectInput(session, "anno.source", NULL, names(store$anno)))
@@ -155,19 +155,23 @@ server <- function(input, output, session) {
   
   # process [4]: derive values from processed data
   anno_list <- reactive(tryCatch(anno_proc()$annos %>% str_subset(input$anno.regex) %>% as.character, error = function(e) character()))
-  cell_gene <- reactive(rownames(cell_raw()))
   anno_sets <- reactive(anno_proc()$gs_anno$name)
+  cell_gene <- reactive(rownames(cell_raw()))
   data_list <- reactive(data_proc()$genes)
   data_info <- reactive(data_proc()$gs_info %>% select(`Gene Set` = name, Information = info, Description = any_of("desc"), Category = category, Organism = organism))
   data_sets <- reactive(data_proc()$gs_info$name)
+  expr_gene <- reactive(colnames(expr_raw()))
 
   cell_gene_list <- reactive(if (input$cell.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
   cell_anno_list <- reactive(stats() %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, cell_gene_list())$genes) %>% compact())
   cell_anno_gene <- reactive(if (input$cell.anno == "") character() else cell_anno_list()[[input$cell.anno]] %>% str_sort(numeric = TRUE))
 
-  score_gene_list <- reactive(if (input$score.gene.match) intersect(input_proc()$gene, cell_gene()) else cell_gene())
-  score_anno_list <- reactive(stats() %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, score_gene_list())$genes) %>% compact())
-  score_anno_gene <- reactive(if (input$score.anno == "") character() else score_anno_list()[[input$score.anno]])
+  score_gene_list <- reactive({
+    genes <- if (input$score.type == "cell") cell_gene() else if (input$score.type == "expr") expr_gene()
+    if (input$score.gene.match) intersect(input_proc()$gene, genes) else genes
+  })
+  score_anno_list <- reactive(stats() %>% pull(Annotation) %>% str_sort(numeric = TRUE) %>% setNames(., nm = .) %>% map(~glacier:::explore_annotation(., anno_proc()$gs_annos, data_proc()$gs_genes, score_gene_list())) %>% compact())
+  score_anno_gene <- reactive({if (input$score.anno == "") character() else score_anno_list()[[input$score.anno]]$genes})
 
   cont_sets <- reactive({
     anno_part <- anno_sets() %>% tibble(name = .) %>% add_column(anno = TRUE)
@@ -236,7 +240,7 @@ server <- function(input, output, session) {
     
     withProgress(message = "Calculating scores", {
       if (input$score.type == "cell") score_seurat(cell_raw(), input$cell.group, score_anno_gene())
-      else if (input$score.type == "expr") score_expr(expr_raw(), "grp", intersect(score_anno_gene(), colnames(expr_raw())))
+      else if (input$score.type == "expr") score_expr(expr_raw(), "grp", score_anno_gene())
       else stop("scores_stat: invalid option chosen")
     })
   })
