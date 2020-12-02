@@ -15,7 +15,7 @@
 score_expr <- function(expression, group, genes) {
   uses(c("mixOmics", "pROC"), stop, "'mixOmics' and 'pROC' are required")
   expression$lvl <- expression[[group]] %>% factor() %>% as.integer()
-  data <- expression[, genes]
+  data <- expression %>% dplyr::select(dplyr::any_of(genes))
   
   expression$pca <- mixOmics::pca(t(data))$loadings$X[, 1]
   expression$pls <- mixOmics::pls(data, expression$lvl,
@@ -59,7 +59,7 @@ score_seurat <- function(seurat, group, genes) {
   for (i in levels(seurat$seurat_clusters)) {
     cluster <- subset(seurat, idents = i)
     cl_data <- cluster@assays$integrated@data %>% data.frame() %>% t() %>%
-      data.frame() %>% dplyr::select(dplyr::all_of(genes))
+      data.frame() %>% dplyr::select(dplyr::any_of(genes))
     cl_meta <- cluster@meta.data
     cl_meta$grp_lvl <- cl_meta[[group]] %>% factor() %>% as.integer()
     
