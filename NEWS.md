@@ -1,4 +1,8 @@
 # glacier (development)
+## glacier 0.15.1
+* Re-enabled loading of private data
+* Fixed suggests
+
 ## glacier 0.15.0
 * Numerous bug fixes
 * Updated Shiny UI
