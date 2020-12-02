@@ -1,4 +1,8 @@
 # glacier (development)
+## glacier 0.15.2
+* Fix multiple uploads
+* Handle invalid genes in score calculation
+
 ## glacier 0.15.1
 * Re-enabled loading of private data
 * Fixed suggests
