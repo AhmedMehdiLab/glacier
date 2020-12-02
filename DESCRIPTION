@@ -1,6 +1,6 @@
 Package: glacier
 Title: Gene List Annotation, Calculation and Illustration of Enrichment in R
-Version: 0.15.1
+Version: 0.15.2
 Authors@R: 
     c(person("Lilin", "Yang", role = c("aut", "cre"),
              email = "lilin.yang@uq.net.au"),
