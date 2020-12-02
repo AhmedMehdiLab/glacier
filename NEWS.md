@@ -1,4 +1,7 @@
 # glacier (development)
+## glacier 0.15.3 (in development)
+* Refreshed Quality UI
+
 ## glacier 0.15.2
 * Fix multiple uploads
 * Handle invalid genes in score calculation
