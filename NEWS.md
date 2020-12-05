@@ -1,6 +1,7 @@
 # glacier (development)
 ## glacier 0.15.3 (in development)
 * Refreshed Quality UI
+* Documentation updates
 
 ## glacier 0.15.2
 * Fix multiple uploads
