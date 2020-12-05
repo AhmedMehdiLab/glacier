@@ -1,7 +1,5 @@
 ---
 title: "The `glacier` Console Interface"
-author: "Lilin Yang"
-date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{The `glacier` Console Interface}
@@ -19,6 +17,7 @@ knitr::opts_chunk$set(
 ## Introduction
 ```{r setup}
 library(glacier)
+library(Seurat)
 ```
 
 This is a tutorial on how to use the functions contained in the `glacier`
@@ -114,17 +113,75 @@ calculated:
 knitr::kable(stats$stats, "pipe")
 ```
 
-## Plot statistics
+## Plotting results
+### Statistics
 The results of the overlap calculation can then be plotted:
 
 ```{r fig.height = 3, fig.width = 7}
 plot_stats(stats$stats, "Fold Enrichment", "Adjusted P-value")
 ```
 
-## Plot overlap
+### Overlap
 The list of annotation-gene matches can also be plotted. Here, the gene values
 from the input above are used for coloring the boxes:
 
 ```{r fig.height = 3, fig.width = 7}
 plot_overlap(stats$matches, "Gene Value", gene_vals, stats$stats)
+```
+
+## Score calculation
+### Seurat
+The Seurat object can also be used in score calculation. This will calculate
+Principal Component Analysis, Partial Least Squares and Partial Least Squares
+Discriminant Analysis scores, along with their corresponding AUC.
+
+```{r message = FALSE}
+seu_score <- score_seurat(seurat_data, "grp", c("APOE", "CTSZ"))
+```
+
+```{r echo = FALSE}
+knitr::kable(head(seu_score$scores), "pipe")
+knitr::kable(head(seu_score$aucs), "pipe")
+```
+
+### Expression data
+Separately, pre-processed expression data can also be used to calculate
+time-series scores.
+```{r message = FALSE}
+expr_path <- system.file("extdata", "ex_expr.rds", package = "glacier")
+expr_data <- readRDS(expr_path)
+
+exp_score <- score_expr(expr_data, "grp", c("APOE", "CTSZ"))
+```
+
+```{r echo = FALSE}
+knitr::kable(head(exp_score$scores), "pipe")
+knitr::kable(head(exp_score$aucs), "pipe")
+```
+
+### Displaying results
+The above tables can then be displayed graphically:
+
+```{r fig.height = 3, fig.width = 7}
+plot_scores(seu_score$scores, "seurat_clusters", "pca", "grp", "box")
+```
+
+```{r fig.height = 3, fig.width = 7, warning = FALSE}
+plot_auc(seu_score$aucs, "pca")
+```
+
+```{r fig.height = 3, fig.width = 7}
+plot_scores(exp_score$scores, "bin", "pca", "grp", "box")
+```
+
+```{r fig.height = 3, fig.width = 7}
+plot_auc(exp_score$aucs, "pca")
+```
+
+## Launch web application
+The web application can also be launched from the console. A guide on how to use
+the web application can be found in the `web-app` vignette.
+
+```{r eval = FALSE}
+webstart()
 ```
