@@ -3,12 +3,12 @@ title: "The `glacier` Web Interface"
 author: "Lilin Yang"
 date: "`r Sys.Date()`"
 output:
+  pdf_document:
+    toc: true
+    number_sections: true
   html_document:
     toc: true
     toc_float: true
-    number_sections: true
-  pdf_document:
-    toc: true
     number_sections: true
 vignette: >
   %\VignetteIndexEntry{The `glacier` Web Interface}
@@ -111,10 +111,10 @@ options to configure which columns to show in the **Statistics** and
 
 Further down are the upload and download buttons. After uploading a file, the
 **upload dialog** will be displayed. Users must select whether the file is an
-annotation, database, MSigDB XML or Seurat RDS file, and provide a name for the
-application to use. Options below are specified for annotation and database
-files, including which file delimiter to use, whether the file has a header as
-well as which columns to use for content and descriptions.
+annotation, database, MSigDB XML, Seurat RDS or Expression RDS file, and provide
+a name for the application to use. Options below are specified for annotation
+and database files, including which file delimiter to use, whether the file has
+a header as well as which columns to use for content and descriptions.
 
 Annotations and databases should be stored in `.csv` files, with the gene set
 name in the first column, followed by annotations or genes in the succeeding
@@ -124,11 +124,11 @@ columns. Further information on the format, including examples, are available in
 The download button will initiate the download of a `.csv` file containing the
 statistics calculated.
 
-# Bar plot pane
+# Plot configuration pane
 
-![Bar plot pane](../man/figures/bars_pane.png)
+![Plot pane](../man/figures/plot_pane.png)
 
-Shown above/below is the **bar plot pane**. Here, there are options for
+Shown above/below is the **plot pane**. Here, there are options for
 configuring the **Plot** output, including the values and coloring of the bars,
 as well as transformations for the scale of the values and colors.
 
@@ -136,29 +136,22 @@ Below this is a slider to select which annotations to plot, limited to 80 at a
 time. Additionally, there is an option to arrange the annotations displayed in
 the plot in descending order of value.
 
-# Overlap plot pane
-
-![Overlap plot pane](../man/figures/overlap_pane.png)
-
-Shown above/below is the **overlap plot pane**. Here, there are options for
-configuring the **Overlap** output, including the coloring and scale adjustment
-of the boxes. The plot will omit boxes with NA, NaN, Inf and -Inf values, so
-the "Gene Value", "Odds Ratio", "Fold Enrichment" and "Adjusted Fold Enrichment"
-options should be used with caution.
+Below, there are options for configuring the **Overlap** output, including the
+coloring and scale adjustment of the boxes. The plot will omit boxes with NA,
+NaN, Inf and -Inf values, so the "Gene Value", "Odds Ratio", "Fold Enrichment"
+and "Adjusted Fold Enrichment" options should be used with caution.
 
 Below this are sliders for selecting annotations and genes, limited to 80 and
-100 respectively. Note that the gene slider is not displayed; this will be shown
-when genes are entered as input.
+100 respectively.
 
 # Seurat data pane
 
-![Seurat data pane](../man/figures/cell_pane.png)
+![Seurat data pane](../man/figures/cluster_pane.png)
 
 Shown above/below is the **Seurat data pane**. Here, there are options for
 configuring the **Cluster** and **Expression** outputs. Here, there is an option
 to visualize different clustering techniques, if they have been generated prior
-to upload. Additionally, there is an option to downsample the Seurat data set. A
-low value is recommended for low-memory systems.
+to upload.
 
 Below this are options to configure the **Expression** output. The expression
 plot can show a "Dot Plot", "Feature Plot", "Heatmap", "Ridge Plot" or "Violin
@@ -180,16 +173,12 @@ In the **main panel**, users can select which outputs to view:
 * **Overlap** displays the gene-annotation overlap plot.
 * **Cluster** displays the overview plot for the Seurat data, if available.
 * **Expression** displays the Seurat gene expression plot.
+* **Scores** displays the calculated scores.
 * **Statistics** displays the calculated statistics. Note that this table can be
 configured to show a list of all annotations by deselecting all other columns in
 the **advanced pane**.
-* **Contents** displays the list of all genes from the database and Seurat files
-respectively.
-* **Recognised** splits genes from the input into two lists based on whether
-they were found in the database.
-* **Mismatched** displays which gene sets from the annotation file were not
-found in the database file, and vice-versa.
-* **Gene Values** splits genes from the input into two lists based on whether
-they were assigned values.
+* **Convert** displays a list of converted gene names.
+* **Quality** displays a list of all annotations, gene sets and genes, and
+whether they are found in the annotation, database, Seurat or Input data.
 * **Information** displays information about gene sets, and is only useful if
 the database selected was imported from an MSigDB file.
