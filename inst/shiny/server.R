@@ -12,6 +12,7 @@ library(shinyjs)
 library(shinyWidgets)
 library(stringr)
 library(tibble)
+library(tidyr)
 library(tools)
 
 EXAMPLE <- TRUE
@@ -196,12 +197,15 @@ server <- function(input, output, session) {
     return(sets)
   })
   cont_gene <- reactive({
-    sym_unify(Database = data_list(), Seurat = cell_gene(), Input = input_proc()$gene,
-              Value = input_proc() %>% filter(!is.na(value)) %>% pull(gene),
-              .true = POSITIVE, .false = NEGATIVE) %>% rename(Gene = Symbol)
+    input_proc() %>%
+      mutate(Input = as.character(value)) %>%
+      replace_na(list(Input = "No value")) %>%
+      select(Symbol = gene, Input) %>%
+      full_join(sym_unify(Database = data_list(), Seurat = cell_gene(), .true = POSITIVE, .false = NEGATIVE)) %>%
+      rename(Gene = Symbol)
   })
   input_recognised <- reactive({
-    number <- cont_gene() %>% filter((Input == POSITIVE) & (Database == POSITIVE)) %>% nrow
+    number <- cont_gene() %>% filter(!is.na(Input) & (Database == POSITIVE)) %>% nrow
     
     if (number == nrow(input_proc())) removeNotification(store$note$recognised)
     else if (is.null(store$note$recognised)) store$note$recognised <- showNotification("Some genes were not recognised, check 'Quality' tab", duration = NULL, type = "warning")
