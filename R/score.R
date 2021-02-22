@@ -18,10 +18,8 @@ score_expr <- function(expression, group, genes) {
   data <- expression %>% dplyr::select(dplyr::any_of(genes))
   
   expression$pca <- mixOmics::pca(t(data))$loadings$X[, 1]
-  expression$pls <- mixOmics::pls(data, expression$lvl,
-                                  mode = "regression")$variates$X[, 1]
-  expression$plsda <- mixOmics::plsda(data, expression$lvl,
-                                      mode = "regression")$variates$X[, 1]
+  expression$pls <- mixOmics::pls(data, expression$lvl)$variates$X[, 1]
+  expression$plsda <- mixOmics::plsda(data, expression$lvl)$variates$X[, 1]
   
   aucs <- tibble::tibble(
     cluster = NA,
@@ -68,7 +66,7 @@ score_seurat <- function(seurat, group, genes) {
       tryCatch(mixOmics::pca(t(cl_data))$loadings$X[, 1],
                error = function(e) NA)
     cl_meta$pls <- 
-      tryCatch(mixOmics::pls(cl_data, cl_meta$grp_lvl, mode = "regression")$variates$X[, 1],
+      tryCatch(mixOmics::pls(cl_data, cl_meta$grp_lvl)$variates$X[, 1],
                error = function(e) NA)
     cl_meta$plsda <-
       tryCatch(mixOmics::plsda(cl_data, cl_meta$grp_lvl)$variates$X[, 1],

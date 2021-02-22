@@ -3,12 +3,12 @@ title: "The `glacier` Web Interface"
 author: "Lilin Yang"
 date: "`r Sys.Date()`"
 output:
-  pdf_document:
-    toc: true
-    number_sections: true
   html_document:
     toc: true
     toc_float: true
+    number_sections: true
+  pdf_document:
+    toc: true
     number_sections: true
 vignette: >
   %\VignetteIndexEntry{The `glacier` Web Interface}
