@@ -65,17 +65,18 @@ server <- function(input, output, session) {
     store$mart <- list() # biomaRt marts
     store$note <- list() # Notification handlers
     store$file <- reactiveValues() # Upload slot
+    store$pause <- TRUE
     
     if (PRIVATE) {
       store$anno$`E.PAGE` <- system.file("extdata", "private", "epage_anno.rds", package = "glacier") %>% readRDS
-      store$anno$`MSigDB C7` <- system.file("extdata", "private", "msigdb_anno_orig.rds", package = "glacier") %>% readRDS
-      store$anno$`MSigDB C7 (MODIFIED)` <- system.file("extdata", "private", "msigdb_anno.rds", package = "glacier") %>% readRDS
+      store$anno$`MSigDB C7 (example)` <- system.file("extdata", "private", "msigdb_ex_anno.rds", package = "glacier") %>% readRDS
       
       store$data$`E.PAGE` <- system.file("extdata", "private", "epage_data.rds", package = "glacier") %>% readRDS
-      store$data$`MSigDB 7.2` <- system.file("extdata", "private", "msigdb_data.rds", package = "glacier") %>% readRDS
+      store$data$`MSigDB 7.4` <- system.file("extdata", "private", "msigdb_data.rds", package = "glacier") %>% readRDS
       
+      store$cell$GSE131907 <- system.file("extdata", "private", "GSE131907_cell.rds", package = "glacier") %>% readRDS
       store$cell$GSE150728_nano <- system.file("extdata", "private", "GSE150728_cell.rds", package = "glacier") %>% readRDS
-      store$expr$Combo <- system.file("extdata", "private", "GSE150728_expr.rds", package = "glacier") %>% readRDS
+      store$expr$GSE150728 <- system.file("extdata", "private", "GSE150728_expr.rds", package = "glacier") %>% readRDS
     }
     
     if (EXAMPLE) {
@@ -150,8 +151,14 @@ server <- function(input, output, session) {
     updateSelectInput(session, "score.type", NULL, score_opts)
   })
   observe(updateSelectInput(session, "cell.view.cluster", NULL, cell_clusts(), cell_clusts()))
-  observe(updateSelectInput(session, "data.categories", NULL, levels(data_raw()$gs_info$category), levels(data_raw()$gs_info$category)[1]))
-  observe(updateSelectInput(session, "data.organisms", NULL, levels(data_raw()$gs_info$organism), levels(data_raw()$gs_info$organism)[1]))
+  observe({
+    selected <- if (input$data.source == "MSigDB 7.4") c("C7 IMMUNESIGDB", "C7 VAX") else levels(data_raw()$gs_info$category)[1]
+    updateSelectInput(session, "data.categories", NULL, levels(data_raw()$gs_info$category), selected)
+  })
+  observe({
+    selected <- if (input$data.source == "MSigDB 7.4") "Homo sapiens" else levels(data_raw()$gs_info$organism)[1]
+    updateSelectInput(session, "data.organisms", NULL, levels(data_raw()$gs_info$organism), selected)
+  })
   observe(updateNumericInput(session, "input.universe", NULL, universe(), universe()))
 
   # process [3]: process source using inputs
@@ -221,9 +228,9 @@ server <- function(input, output, session) {
     "Expression: ", nrow(expr_raw()), " × ", ncol(expr_raw()), "\n"
   ))
 
-  output$cont.anno <- renderDataTable(stats_raw()$stats %>% select("Annotation"), DT_SMALL)
-  output$cont.sets <- renderDataTable(cont_sets(), DT_SMALL)
-  output$cont.gene <- renderDataTable(cont_gene(), DT_SMALL)
+  output$cont.anno <- renderDataTable({if (store$pause) return(NULL); stats_raw()$stats %>% select("Annotation")}, DT_SMALL)
+  output$cont.sets <- renderDataTable({if (store$pause) return(NULL); cont_sets()}, DT_SMALL)
+  output$cont.gene <- renderDataTable({if (store$pause) return(NULL); cont_gene()}, DT_SMALL)
 
   # controls [3]: display configuration
   observe(updateSelectInput(session, "cell.anno", NULL, names(cell_anno_list())))
@@ -251,7 +258,7 @@ server <- function(input, output, session) {
 
   scores_stat <- reactive({
     if (!requireNamespace("mixOmics", quietly = T) || !requireNamespace("pROC", quietly = T)) return(NULL)
-    
+
     withProgress(message = "Calculating scores", {
       if (input$score.type == "cell") score_seurat(cell_raw(), input$cell.group, score_anno_gene())
       else if (input$score.type == "expr") score_expr(expr_raw(), "grp", score_anno_gene())
@@ -305,6 +312,15 @@ server <- function(input, output, session) {
   observe(updateVarSelectInput(session, "stat.columns", NULL, stats(), names(stats())))
   observe(toggleState("cell.gene.cluster", input$cell.gene.match))
 
+  # warn user if about long operation
+  observe({
+    if (input$main_view %in% c("score_pane", "conv_pane", "cont_pane")) {
+      store$pause <- TRUE
+      showModal(modalDialog(span("This operation may take some time. Continue?"), title = "Confirm action", footer = tagList(actionButton("warn.cont", "Continue"), modalButton("Cancel"))))
+    }
+  })
+  observeEvent(input$warn.cont, {if (input$warn.cont) {store$pause <- FALSE}; removeModal()})
+  
   # crop data
   view_bars <- reactive(bars_stat()[store$bars.anno.select[1]:store$bars.anno.select[2], ])
   view_over <- reactive(over_stat()[store$over.anno.select[1]:store$over.anno.select[2], ])
@@ -342,12 +358,15 @@ server <- function(input, output, session) {
     else if (input$cell.plot == "violin") Seurat::VlnPlot(sample, features = feats, ncol = width)
   })
   output$score <- renderPlot({
+    if (store$pause) return(NULL)
+    
     x <- if (input$score.type == "expr") "bin" else "seurat_clusters"
     plot_scores(scores_stat()$scores, x, input$score.method, "grp", input$score.plot) +
       xlab(NULL) + ylab(str_c(input$score.anno, " scores")) + theme(legend.position = "top")
   })
-  output$rocs <- renderPlot({plot_auc(scores_stat()$aucs, input$score.method)})
+  output$rocs <- renderPlot({if (store$pause) return(NULL); plot_auc(scores_stat()$aucs, input$score.method)})
   output$conv <- renderDataTable({
+    if (store$pause) return(NULL)
     withProgress(message = "Connecting to Ensembl", {
       setProgress(value = 0.1, detail = "Retrieving Homo sapiens data")
       while (is.null(store$mart$hs)) store$mart$hs <- tryCatch(biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"), error = function(e) {print("Retrying"); NULL})

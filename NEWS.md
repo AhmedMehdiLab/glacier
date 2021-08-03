@@ -1,4 +1,10 @@
 # glacier (development)
+## glacier 0.16.0
+* Updated supplied files
+* Updated defaults
+* Added text labels to buttons
+* Warn user against commencing long operations
+
 ## glacier 0.15.3
 * Refreshed Quality UI
 * Documentation updates

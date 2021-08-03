@@ -10,7 +10,7 @@ inputPane <- tagList(
 )
 
 homePane <- tabPanel(
-  NULL, br(), icon = icon("home", lib = "glyphicon"),
+  "1. Home", br(), icon = icon("home", lib = "glyphicon"),
   selectInput("anno.source", "Annotations", c("No annotations" = "")),
   selectInput("anno.types", NULL, c("Gene Sets" = "name", "Symbols" = "syms", "Descriptions" = "info", "Automatic" = "auto", "Manual" = "file"), selected = "file", multiple = TRUE),
   textInput("anno.regex", NULL, placeholder = "Filter using regular expressions"),
@@ -27,11 +27,11 @@ homePane <- tabPanel(
   
   selectInput("expr.source", "Expression", c("No expression data" = "")),
   
-  selectInput("conv", "Convert", c("(none)" = "", "Human to mouse" = "hm", "Mouse to human" = "mh"))
+  selectInput("conv", "Convert", c("Human to mouse" = "hm", "Mouse to human" = "mh"))
 )
 
 etcPane <- tabPanel(
-  NULL, br(), icon = icon("cog", lib = "glyphicon"),
+  "2. Configuration", br(), icon = icon("cog", lib = "glyphicon"),
   radioButtons("info.source", "Description source", c("Annotations" = "anno", "Database" = "data"), inline = TRUE),
   checkboxInput("stat.sigonly", "Significant results only", TRUE),
   checkboxInput("name.fix", "Remove underscores from gene set names", TRUE), hr(),
@@ -46,7 +46,7 @@ etcPane <- tabPanel(
 )
 
 plotPane <- tabPanel(
-  NULL, br(), icon = icon("stats", lib = "glyphicon"),
+  "3. Statistics", br(), icon = icon("stats", lib = "glyphicon"),
   selectInput("bars.value", "Plot value", c("# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment"), selected = "Fold Enrichment"),
   selectInput("bars.color", "Plot color", c("# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment"), selected = "Adjusted P-value"),
   selectInput("bars.anno.order", "Plot order", c("Annotation", "# gene sets", "# genes", "# matches", "P-value", "Adjusted P-value", "Odds Ratio", "Fold Enrichment", "Adjusted Fold Enrichment")),
@@ -62,7 +62,7 @@ plotPane <- tabPanel(
 )
 
 cellPane <- tabPanel(
-  NULL, br(), icon = icon("screenshot", lib = "glyphicon"),
+  "4. Cluster", br(), icon = icon("screenshot", lib = "glyphicon"),
   selectInput("cell.overview", "Overview plot", c("No Seurat data selected" = "")), hr(),
   
   selectInput("cell.plot", "Expression plot", c("Dot Plot" = "dot", "Feature Plot" = "feat", "Heatmap" = "heat", "Ridge Plot" = "ridge", "Violin Plot" = "violin"), "feat"),
@@ -74,7 +74,7 @@ cellPane <- tabPanel(
 )
 
 scorePane <- tabPanel(
-  NULL, br(), icon = icon("scale", lib = "glyphicon"),
+  "5. Scores", br(), icon = icon("scale", lib = "glyphicon"),
   selectInput("score.type", "Type", c("(none)" = "")),
   selectInput("score.method", "Method", c("Eigen expression" = "pca", "Partial least squares" = "pls", "Partial least squares discriminant analysis" = "plsda")),
   selectInput("score.plot", "Plot", c("Scatter plot" = "whiskers", "Box plot" = "box", "Violin plot" = "violin")),
@@ -82,25 +82,25 @@ scorePane <- tabPanel(
   checkboxInput("score.gene.match", "Restrict to genes in input")
 )
 
-barsView <- tabPanel("Plot", icon = icon("stats", lib = "glyphicon"), plotOutput("bars", height = "calc(100vh - 132.5px)"))
-overView <- tabPanel("Overlap", icon = icon("equalizer", lib = "glyphicon"), plotOutput("over", height = "calc(100vh - 132.5px)"))
-cellView <- tabPanel("Cluster", icon = icon("screenshot", lib = "glyphicon"), plotOutput("cell", height = "calc(100vh - 132.5px)"))
-heatView <- tabPanel("Expression", icon = icon("fire", lib = "glyphicon"), plotOutput("heat", height = "calc(100vh - 132.5px)"))
-scoreView <- tabPanel("Scores", icon = icon("scale", lib = "glyphicon"), plotOutput("score", height = "calc(100vh - 432.5px)"), plotOutput("rocs", height = 300))
-statView <- tabPanel("Statistics", icon = icon("th", lib = "glyphicon"), dataTableOutput("stat"))
-contView <- tabPanel("Quality", icon = icon("ok", lib = "glyphicon"), fluidRow(
+barsView <- tabPanel("1. Plot", value = "bars_pane", icon = icon("stats", lib = "glyphicon"), plotOutput("bars", height = "calc(100vh - 132.5px)"))
+statView <- tabPanel("2. Statistics", value = "stat_pane", icon = icon("th", lib = "glyphicon"), dataTableOutput("stat"))
+overView <- tabPanel("3. Overlap", value = "over_pane", icon = icon("equalizer", lib = "glyphicon"), plotOutput("over", height = "calc(100vh - 132.5px)"))
+cellView <- tabPanel("4. Cluster", value = "cell_pane", icon = icon("screenshot", lib = "glyphicon"), plotOutput("cell", height = "calc(100vh - 132.5px)"))
+heatView <- tabPanel("5. Expression", value = "heat_pane", icon = icon("fire", lib = "glyphicon"), plotOutput("heat", height = "calc(100vh - 132.5px)"))
+scoreView <- tabPanel("6. Scores", value = "score_pane", icon = icon("scale", lib = "glyphicon"), plotOutput("score", height = "calc(100vh - 443.5px)"), plotOutput("rocs", height = 300))
+convView <- tabPanel("7. Convert", value = "conv_pane", icon = icon("transfer", lib = "glyphicon"), dataTableOutput("conv"))
+contView <- tabPanel("8. Quality", value = "cont_pane", icon = icon("ok", lib = "glyphicon"), fluidRow(
   column(3, dataTableOutput("cont.anno")),
   column(4, dataTableOutput("cont.sets")),
   column(5, dataTableOutput("cont.gene"))))
-convView <- tabPanel("Convert", icon = icon("transfer", lib = "glyphicon"), dataTableOutput("conv"))
-infoView <- tabPanel("Information", icon = icon("info-sign", lib = "glyphicon"), dataTableOutput("info"))
+infoView <- tabPanel("9. Information", value = "info_pane", icon = icon("info-sign", lib = "glyphicon"), dataTableOutput("info"))
 
 ui <- fluidPage(
   theme = shinytheme("yeti"), useShinyjs(),
   titlePanel("glacier: Gene List Annotation, Calculation and Illustration of Enrichment in R"),
   sidebarLayout(
     sidebarPanel(fluidRow(column(6, inputPane), column(6, tabsetPanel(type = "pills", homePane, etcPane, plotPane, cellPane, scorePane)))),
-    mainPanel(tabsetPanel(barsView, overView, cellView, heatView, scoreView, statView, convView, contView, infoView))
+    mainPanel(tabsetPanel(id = "main_view", barsView, statView, overView, cellView, heatView, scoreView, convView, contView, infoView))
   ),
   tags$head(tags$style(".text-compare {height: calc(100vh - 170px); overflow-y: auto;}"))
 )
