@@ -114,7 +114,7 @@ server <- function(input, output, session) {
   cell_raw <- reactive({
     if (requireNamespace("Seurat", quietly = T)) {
       cell <- store$cell[[req(input$cell.source)]]
-      if ("seurat_clusters" %in% names(cell[[]])) Idents(cell) <- "seurat_clusters"
+      if ("seurat_clusters" %in% names(cell[[]])) Seurat::Idents(cell) <- "seurat_clusters"
       return(cell)
   }})
   data_raw <- reactive(store$data[[req(input$data.source)]])
