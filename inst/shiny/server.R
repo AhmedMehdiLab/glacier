@@ -122,7 +122,12 @@ server <- function(input, output, session) {
   info <- reactive((if (input$info.source == "anno") anno_raw() else data_raw()$gs_info) %>% select("name", "info"))
   
   # process [2]: extract information from source
-  cell_clusts <- reactive(cell_raw()$seurat_clusters %>% levels)
+  cell_clusts <- reactive({
+    columns <- names(cell_raw()[[]])
+    if ("anno" %in% columns) cell_raw()$anno %>% levels
+    else if ("cell_type" %in% columns) cell_raw()$cell_type %>% levels
+    else cell_raw()$seurat_clusters %>% levels
+  })
   cell_groups <- reactive(cell_raw()@meta.data %>% pull(input$cell.group) %>% unique)
   universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% c(input_proc()$gene) %>% unique %>% length)
 
