@@ -16,7 +16,6 @@ library(tidyr)
 library(tools)
 
 EXAMPLE <- TRUE
-PRIVATE <- TRUE
 SHINYIO <- FALSE
 
 POSITIVE <- "Yes"
@@ -72,18 +71,6 @@ server <- function(input, output, session) {
     store$note <- list() # Notification handlers
     store$file <- reactiveValues() # Upload slot
     store$pause <- TRUE
-    
-    if (PRIVATE) {
-      store$anno$`E.PAGE` <- system.file("extdata", "private", "epage_anno.rds", package = "glacier") %>% readRDS
-      store$anno$`MSigDB C7 (example)` <- system.file("extdata", "private", "msigdb_ex_anno.rds", package = "glacier") %>% readRDS
-      
-      store$data$`E.PAGE` <- system.file("extdata", "private", "epage_data.rds", package = "glacier") %>% readRDS
-      store$data$`MSigDB 7.4` <- system.file("extdata", "private", "msigdb_data.rds", package = "glacier") %>% readRDS
-      
-      store$cell$GSE131907 <- system.file("extdata", "private", "GSE131907_cell.rds", package = "glacier") %>% readRDS
-      store$cell$GSE150728_nano <- system.file("extdata", "private", "GSE150728_cell.rds", package = "glacier") %>% readRDS
-      store$expr$GSE150728 <- system.file("extdata", "private", "GSE150728_expr.rds", package = "glacier") %>% readRDS
-    }
     
     if (EXAMPLE) {
       store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
