@@ -1,4 +1,8 @@
 # glacier (development)
+## glacier 0.16.1
+* Allow extraction of cluster names from Seurat objects
+* Split into public and private branches
+
 ## glacier 0.16.0
 * Updated supplied files
 * Updated defaults

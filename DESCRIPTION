@@ -1,6 +1,6 @@
 Package: glacier
 Title: Gene List Annotation, Calculation and Illustration of Enrichment in R
-Version: 0.16.0
+Version: 0.16.1
 Authors@R: 
     c(person("Lilin", "Yang", role = c("aut", "cre"),
              email = "lilin.yang@uq.net.au"),
@@ -16,7 +16,6 @@ License: file LICENCE
 URL: https://github.com/AhmedMehdiLab/glacier
 BugReports: https://github.com/AhmedMehdiLab/glacier/issues
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.1.1
 Imports: 
     dplyr (>= 1.0.2),

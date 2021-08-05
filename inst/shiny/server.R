@@ -111,13 +111,18 @@ server <- function(input, output, session) {
 
   # process [1]: load from source
   anno_raw <- reactive(store$anno[[req(input$anno.source)]])
-  cell_raw <- reactive(if (requireNamespace("Seurat", quietly = T)) store$cell[[req(input$cell.source)]])
+  cell_raw <- reactive({
+    if (requireNamespace("Seurat", quietly = T)) {
+      cell <- store$cell[[req(input$cell.source)]]
+      if ("seurat_clusters" %in% names(cell[[]])) Idents(cell) <- "seurat_clusters"
+      return(cell)
+  }})
   data_raw <- reactive(store$data[[req(input$data.source)]])
   expr_raw <- reactive(store$expr[[req(input$expr.source)]])
   info <- reactive((if (input$info.source == "anno") anno_raw() else data_raw()$gs_info) %>% select("name", "info"))
   
   # process [2]: extract information from source
-  cell_clusts <- reactive(cell_raw() %>% levels)
+  cell_clusts <- reactive(cell_raw()$seurat_clusters %>% levels)
   cell_groups <- reactive(cell_raw()@meta.data %>% pull(input$cell.group) %>% unique)
   universe <- reactive(data_raw()$gs_genes %>% unlist(use.names = F) %>% c(input_proc()$gene) %>% unique %>% length)
 
@@ -265,6 +270,10 @@ server <- function(input, output, session) {
   scores_stat <- reactive({
     if (!requireNamespace("mixOmics", quietly = T) || !requireNamespace("pROC", quietly = T)) return(NULL)
 
+    validate(
+      need("grp" %in% names(cell_raw()[[]]), "No groups found in Seurat object")
+    )
+    
     withProgress(message = "Calculating scores", {
       if (input$score.type == "cell") score_seurat(cell_raw(), input$cell.group, score_anno_gene())
       else if (input$score.type == "expr") score_expr(expr_raw(), "grp", score_anno_gene())
