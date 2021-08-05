@@ -44,6 +44,12 @@ REDUCTIONS <- c("Principal component analysis" = "pca",
               "Uniform Manifold Approximation and Projection" = "umap")
 options(shiny.maxRequestSize = 5 * 1024 ^ 3) # 5 GiB max upload size
 
+warn_modal <- modalDialog(
+  "This operation may take some time. Continue?",
+  title = "Confirm action",
+  footer = tagList(actionButton("warn.cont", "Continue"), modalButton("Cancel"))
+)
+
 sym_unify <- function(..., .true = T, .false = F) {
   data <- list(...)
   syms <- tibble::tibble(Symbol = unique(unlist(data, use.names = FALSE)))
@@ -312,14 +318,14 @@ server <- function(input, output, session) {
   observe(updateVarSelectInput(session, "stat.columns", NULL, stats(), names(stats())))
   observe(toggleState("cell.gene.cluster", input$cell.gene.match))
 
-  # warn user if about long operation
+  # warn user about time-consuming operations
   observe({
     if (input$main_view %in% c("score_pane", "conv_pane", "cont_pane")) {
       store$pause <- TRUE
-      showModal(modalDialog(span("This operation may take some time. Continue?"), title = "Confirm action", footer = tagList(actionButton("warn.cont", "Continue"), modalButton("Cancel"))))
+      showModal(warn_modal)
     }
   })
-  observeEvent(input$warn.cont, {if (input$warn.cont) {store$pause <- FALSE}; removeModal()})
+  observeEvent(input$warn.cont, {if (input$warn.cont) store$pause <- FALSE; removeModal()})
   
   # crop data
   view_bars <- reactive(bars_stat()[store$bars.anno.select[1]:store$bars.anno.select[2], ])
