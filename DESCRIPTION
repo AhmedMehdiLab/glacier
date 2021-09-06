@@ -44,5 +44,8 @@ Suggests:
     shinyWidgets (>= 0.5.3),
     testthat (>= 2.3.2),
     rmarkdown (>= 2.3),
-    biomaRt
+    biomaRt,
+    E.PATH
+Remotes:
+    github::AhmedMehdiLab/E.PATH
 VignetteBuilder: knitr

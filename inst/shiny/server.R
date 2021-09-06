@@ -72,6 +72,11 @@ server <- function(input, output, session) {
     store$file <- reactiveValues() # Upload slot
     store$pause <- TRUE
     
+    if (requireNamespace("E.PATH", quietly = TRUE)) {
+      store$anno$`E.PATH` <- E.PATH::annotations
+      store$data$`E.PATH` <- E.PATH::database
+    }
+
     if (EXAMPLE) {
       store$anno$Example <- import_annotations(system.file("extdata", "ex_anno.csv", package = "glacier"), ",", TRUE, c(2, 4), 5)
       store$data$Example <- import_database(system.file("extdata", "ex_data.csv", package = "glacier"), ",", FALSE, c(2, 4), 0)
