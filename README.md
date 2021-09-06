@@ -1,10 +1,11 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-glacier <img src="man/figures/icon.png" align="right" height="139">
-===================================================================
+# glacier <img src="man/figures/icon.png" align="right" height="139">
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/AhmedMehdiLab/glacier/workflows/R-CMD-check/badge.svg)](https://github.com/AhmedMehdiLab/glacier/actions)
 <!-- badges: end -->
 
 The goal of glacier is to calculate annotation overlap statistics for
@@ -16,8 +17,7 @@ gene sets. This requires three inputs:
     file.
 3.  A list of genes of interest.
 
-Installation
-------------
+## Installation
 
 <!--
 You can install the released version of glacier from [CRAN](https://CRAN.R-project.org) with:
@@ -32,13 +32,16 @@ And the development version from [GitHub](https://github.com/) with:
 You can install the development version of glacier from from
 [GitHub](https://github.com/) with:
 
-    # install.packages("devtools")
-    devtools::install_github("AhmedMehdiLab/glacier", build_vignettes = TRUE)
+``` r
+# install.packages("devtools")
+devtools::install_github("AhmedMehdiLab/glacier", build_vignettes = TRUE)
+```
 
-Description
------------
+## Description
 
-    library(glacier)
+``` r
+library(glacier)
+```
 
 glacier has three main types of functions:
 
@@ -53,15 +56,13 @@ glacier has three main types of functions:
 An example of these functions in action, as well as the supported input
 formats, can be seen in `vignette("console", package = "glacier")`.
 
-Web application
----------------
+## Web application
 
 A web interface for those less familiar with R is also provided, and can
 be started with `webstart()`. A guide to using the web interface can be
 found in `vignette("web-app", package = "glacier")`.
 
-Acknowledgements
-----------------
+## Acknowledgements
 
 This package was inspired by, and extends the functionality of the [GSEA
 Compute Overlaps

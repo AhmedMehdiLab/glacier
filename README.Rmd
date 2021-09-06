@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # glacier <img src="man/figures/icon.png" align="right" height="139">
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/AhmedMehdiLab/glacier/workflows/R-CMD-check/badge.svg)](https://github.com/AhmedMehdiLab/glacier/actions)
 <!-- badges: end -->
 
 The goal of glacier is to calculate annotation overlap statistics for gene sets.

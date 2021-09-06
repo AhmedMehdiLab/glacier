@@ -73,11 +73,13 @@ server <- function(input, output, session) {
     store$file <- reactiveValues() # Upload slot
     store$pause <- TRUE
     
+    if (requireNamespace("E.PATH", quietly = TRUE)) {
+      store$anno$`E.PATH` <- E.PATH::annotations
+      store$data$`E.PATH` <- E.PATH::database
+    }
+    
     if (PRIVATE) {
-      store$anno$`E.PAGE` <- system.file("extdata", "private", "epage_anno.rds", package = "glacier") %>% readRDS
       store$anno$`MSigDB C7 (example)` <- system.file("extdata", "private", "msigdb_ex_anno.rds", package = "glacier") %>% readRDS
-      
-      store$data$`E.PAGE` <- system.file("extdata", "private", "epage_data.rds", package = "glacier") %>% readRDS
       store$data$`MSigDB 7.4` <- system.file("extdata", "private", "msigdb_data.rds", package = "glacier") %>% readRDS
       
       store$cell$GSE131907 <- system.file("extdata", "private", "GSE131907_cell.rds", package = "glacier") %>% readRDS
