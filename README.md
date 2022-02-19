@@ -33,8 +33,8 @@ You can install the development version of glacier from from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("AhmedMehdiLab/glacier", build_vignettes = TRUE)
+# install.packages("remotes")
+remotes::install_github("AhmedMehdiLab/glacier", build_vignettes = TRUE)
 ```
 
 ## Description
